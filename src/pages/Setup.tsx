@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { setGasUrl } from '../config';
+import { User } from 'firebase/auth';
+import { setGasUrl, setAllowedDomain, saveGasUrlToFirestore, isSkipAuth } from '../config';
 
 const GAS_CODE = `// ============================================================
 // 営業車管理システム - Code.gs
@@ -334,11 +335,13 @@ type TestStatus = 'idle' | 'testing' | 'success' | 'error';
 
 interface Props {
   onComplete: () => void;
+  firebaseUser?: User | null;
 }
 
-export function Setup({ onComplete }: Props) {
+export function Setup({ onComplete, firebaseUser }: Props) {
   const [step, setStep] = useState<Step>(1);
   const [gasUrl, setGasUrlState] = useState('');
+  const [allowedDomain, setAllowedDomainState] = useState('');
   const [testStatus, setTestStatus] = useState<TestStatus>('idle');
   const [testMessage, setTestMessage] = useState('');
   const [copied, setCopied] = useState(false);
@@ -394,7 +397,13 @@ export function Setup({ onComplete }: Props) {
     if (result.success) {
       setTestStatus('success');
       setTestMessage('接続成功！スプレッドシートを初期化しました');
+      // localStorageに保存（gasApi.ts が参照するため・バイパスモード兼用）
       setGasUrl(gasUrl.trim());
+      setAllowedDomain(allowedDomain.trim());
+      // Firestoreに保存（通常モード・複数端末対応）
+      if (!isSkipAuth() && firebaseUser) {
+        await saveGasUrlToFirestore(firebaseUser.uid, gasUrl.trim(), allowedDomain.trim());
+      }
       setTimeout(() => onComplete(), 1500);
     } else {
       setTestStatus('error');
@@ -587,6 +596,25 @@ export function Setup({ onComplete }: Props) {
                   className="w-full pl-9 pr-4 py-3 bg-surface-container-low rounded-xl text-sm font-label focus:outline-none focus:ring-2 focus:ring-surface-tint/30 placeholder:text-on-surface-variant"
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-label uppercase tracking-wider text-on-surface-variant mb-1.5 block">
+                アクセス許可する Google ドメイン（任意）
+              </label>
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" style={{ fontSize: 18 }}>domain</span>
+                <input
+                  type="text"
+                  value={allowedDomain}
+                  onChange={e => setAllowedDomainState(e.target.value)}
+                  placeholder="例: company.co.jp"
+                  className="w-full pl-9 pr-4 py-3 bg-surface-container-low rounded-xl text-sm font-label focus:outline-none focus:ring-2 focus:ring-surface-tint/30 placeholder:text-on-surface-variant"
+                />
+              </div>
+              <p className="text-xs font-label text-on-surface-variant mt-1.5">
+                空欄の場合、すべての Google アカウントでログイン可能になります
+              </p>
             </div>
 
             {testMessage && (

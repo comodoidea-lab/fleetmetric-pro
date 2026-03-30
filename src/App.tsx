@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { auth } from './firebase';
 import { Layout } from './components/Layout';
 import { Dashboard } from './pages/Dashboard';
 import { Vehicles } from './pages/Vehicles';
@@ -9,29 +11,85 @@ import { FuelRecords } from './pages/FuelRecords';
 import { Accidents } from './pages/Accidents';
 import { Reports } from './pages/Reports';
 import { Setup } from './pages/Setup';
+import { Login } from './pages/Login';
 import { useStore } from './store/store';
-import { isSetupComplete } from './config';
+import { isSkipAuth, isSetupComplete, getGasUrlFromFirestore, setGasUrl } from './config';
+
+// アプリ全体の状態
+type AppState = 'loading' | 'login' | 'setup' | 'app';
 
 function AppRoutes() {
   const { loadAll } = useStore();
-  // セットアップ完了済みかチェック（localStorageベース）
-  const [setupDone, setSetupDone] = useState(isSetupComplete);
-
-  function handleSetupComplete() {
-    setSetupDone(true);
-  }
+  const [appState, setAppState] = useState<AppState>('loading');
+  const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
 
   useEffect(() => {
-    if (!setupDone) return;
+    // 開発バイパスモード（VITE_SKIP_AUTH=true）
+    if (isSkipAuth()) {
+      setAppState(isSetupComplete() ? 'app' : 'setup');
+      return;
+    }
+
+    // Firebase Auth 状態を監視
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setAppState('login');
+        setFirebaseUser(null);
+        return;
+      }
+
+      setFirebaseUser(user);
+
+      // Firestore から GAS URL を取得
+      const gasUrl = await getGasUrlFromFirestore(user.uid);
+      if (gasUrl) {
+        // localStorageにも反映（gasApi.ts が参照するため）
+        setGasUrl(gasUrl);
+        setAppState('app');
+      } else {
+        setAppState('setup');
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // データ自動同期（appになったタイミングで起動）
+  useEffect(() => {
+    if (appState !== 'app') return;
     loadAll();
     const interval = setInterval(() => loadAll(), 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [setupDone]);
+  }, [appState]);
 
-  if (!setupDone) {
-    return <Setup onComplete={handleSetupComplete} />;
+  // ① ローディング
+  if (appState === 'loading') {
+    return (
+      <div className="min-h-screen bg-surface flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+          <p className="text-sm font-label text-on-surface-variant">読み込み中...</p>
+        </div>
+      </div>
+    );
   }
 
+  // ② ログイン
+  if (appState === 'login') {
+    return <Login onComplete={() => { /* onAuthStateChanged が自動的に次の状態へ遷移 */ }} />;
+  }
+
+  // ③ セットアップ
+  if (appState === 'setup') {
+    return (
+      <Setup
+        firebaseUser={firebaseUser}
+        onComplete={() => setAppState('app')}
+      />
+    );
+  }
+
+  // ④ メインアプリ
   return (
     <Layout>
       <Routes>
