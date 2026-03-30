@@ -4,7 +4,7 @@ import {
   GoogleAuthProvider,
   signOut,
 } from 'firebase/auth';
-import { auth, isFirebaseConfigured } from '../firebase';
+import { auth, isFirebaseConfigured, firebaseAuthDomain, firebaseProjectId } from '../firebase';
 import { getAllowedDomain } from '../config';
 
 interface Props {
@@ -14,6 +14,7 @@ interface Props {
 export function Login({ onComplete }: Props) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [networkErrorDetail, setNetworkErrorDetail] = useState(false);
 
   useEffect(() => {
     // Firebase設定が不完全な場合は即座にエラー表示
@@ -56,11 +57,12 @@ export function Login({ onComplete }: Props) {
         'auth/configuration-not-found':
           'Firebase の設定が見つかりません。Vercelの環境変数（VITE_FIREBASE_*）が正しく設定されているか確認してください。',
         'auth/network-request-failed':
-          'ネットワークエラーが発生しました。接続を確認してください。',
+          'ネットワークエラー：Firebase の設定値（authDomain）が正しくない可能性があります。',
         'auth/internal-error':
           'Firebase内部エラー。環境変数（VITE_FIREBASE_*）が正しく設定されているか確認してください。',
       };
       setError(messages[code ?? ''] ?? `ログインに失敗しました（${code ?? String(err)}）`);
+      if (code === 'auth/network-request-failed') setNetworkErrorDetail(true);
       setLoading(false);
     }
   }
@@ -96,9 +98,21 @@ export function Login({ onComplete }: Props) {
 
         {/* エラーメッセージ */}
         {error && (
-          <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-error-container text-on-error-container text-sm font-label">
-            <span className="material-symbols-outlined flex-shrink-0" style={{ fontSize: 16 }}>error</span>
-            <span>{error}</span>
+          <div className="space-y-2">
+            <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-error-container text-on-error-container text-sm font-label">
+              <span className="material-symbols-outlined flex-shrink-0" style={{ fontSize: 16 }}>error</span>
+              <span>{error}</span>
+            </div>
+            {networkErrorDetail && (
+              <div className="px-3 py-2.5 rounded-xl bg-surface-container text-on-surface-variant text-xs font-label space-y-1">
+                <p className="font-semibold text-on-surface">🔍 現在の Firebase 設定値（Vercel で確認）</p>
+                <p>authDomain: <code className="bg-surface-container-high px-1 rounded">{firebaseAuthDomain || '（未設定）'}</code></p>
+                <p>projectId: <code className="bg-surface-container-high px-1 rounded">{firebaseProjectId || '（未設定）'}</code></p>
+                <p className="pt-1 text-on-surface-variant">
+                  authDomain は <code className="bg-surface-container-high px-1 rounded">プロジェクトID.firebaseapp.com</code> の形式である必要があります。
+                </p>
+              </div>
+            )}
           </div>
         )}
 

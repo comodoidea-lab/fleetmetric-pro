@@ -22,6 +22,10 @@ export const isFirebaseConfigured =
   !!firebaseConfig.projectId &&
   !!firebaseConfig.appId;
 
+// デバッグ用：認証ドメインを公開（秘密情報ではない）
+export const firebaseAuthDomain = firebaseConfig.authDomain ?? '';
+export const firebaseProjectId  = firebaseConfig.projectId  ?? '';
+
 const app  = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db   = getFirestore(app);
