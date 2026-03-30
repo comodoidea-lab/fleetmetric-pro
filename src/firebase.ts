@@ -15,6 +15,13 @@ const firebaseConfig = {
   appId:       env.VITE_FIREBASE_APP_ID       as string,
 };
 
+// Firebase設定が揃っているか確認
+export const isFirebaseConfigured =
+  !!firebaseConfig.apiKey &&
+  !!firebaseConfig.authDomain &&
+  !!firebaseConfig.projectId &&
+  !!firebaseConfig.appId;
+
 const app  = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db   = getFirestore(app);

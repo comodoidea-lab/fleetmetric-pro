@@ -5,20 +5,36 @@ import {
   GoogleAuthProvider,
   signOut,
 } from 'firebase/auth';
-import { auth } from '../firebase';
+import { auth, isFirebaseConfigured } from '../firebase';
 import { getAllowedDomain } from '../config';
 
 interface Props {
   onComplete: () => void;
 }
 
+// getRedirectResult にタイムアウトを付ける
+function getRedirectResultWithTimeout(ms = 8000) {
+  return Promise.race([
+    getRedirectResult(auth),
+    new Promise<null>((_, reject) =>
+      setTimeout(() => reject(new Error('timeout')), ms)
+    ),
+  ]);
+}
+
 export function Login({ onComplete }: Props) {
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true); // リダイレクト結果確認中はtrue
+  const [loading, setLoading] = useState(true);
 
-  // リダイレクトから戻ってきた際に結果を処理
   useEffect(() => {
-    getRedirectResult(auth)
+    // Firebase設定が不完全な場合は即座にエラー表示
+    if (!isFirebaseConfigured) {
+      setError('Firebase の設定が不完全です。Vercelの環境変数（VITE_FIREBASE_*）を確認してください。');
+      setLoading(false);
+      return;
+    }
+
+    getRedirectResultWithTimeout()
       .then(async (result) => {
         if (!result) {
           // 通常のページロード（リダイレクト前）
@@ -40,6 +56,12 @@ export function Login({ onComplete }: Props) {
         onComplete();
       })
       .catch((err: unknown) => {
+        const isTimeout = err instanceof Error && err.message === 'timeout';
+        if (isTimeout) {
+          setError('Firebase との接続がタイムアウトしました。Vercelの環境変数（VITE_FIREBASE_*）が正しく設定されているか確認してください。');
+          setLoading(false);
+          return;
+        }
         const code = (err as { code?: string }).code;
         const messages: Record<string, string> = {
           'auth/unauthorized-domain':
@@ -51,7 +73,7 @@ export function Login({ onComplete }: Props) {
           'auth/internal-error':
             'Firebase内部エラー。環境変数（VITE_FIREBASE_*）が正しく設定されているか確認してください。',
         };
-        setError(messages[code ?? ''] ?? `ログインに失敗しました（${code ?? 'unknown'}）`);
+        setError(messages[code ?? ''] ?? `ログインに失敗しました（${code ?? err}）`);
         setLoading(false);
       });
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -61,9 +83,7 @@ export function Login({ onComplete }: Props) {
     setLoading(true);
     setError('');
     const provider = new GoogleAuthProvider();
-    // リダイレクト方式（モバイル含む全環境で動作）
     await signInWithRedirect(auth, provider);
-    // ↑ この行以降は実行されない（ページ遷移が起きる）
   }
 
   return (
@@ -103,7 +123,7 @@ export function Login({ onComplete }: Props) {
           </div>
         )}
 
-        {/* Googleログインボタン */}
+        {/* ボタン */}
         <button
           onClick={handleGoogleLogin}
           disabled={loading}
