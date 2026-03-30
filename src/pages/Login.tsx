@@ -35,12 +35,26 @@ export function Login({ onComplete }: Props) {
 
       onComplete();
     } catch (err: unknown) {
+      const code = (err as { code?: string }).code;
       // ユーザーがポップアップを閉じた場合は無視
-      if ((err as { code?: string }).code === 'auth/popup-closed-by-user') {
+      if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
         setLoading(false);
         return;
       }
-      setError('ログインに失敗しました。もう一度お試しください');
+      // エラーコード別のメッセージ
+      const messages: Record<string, string> = {
+        'auth/unauthorized-domain':
+          'このドメインはFirebaseに承認されていません。Firebase Console → Authentication → 承認済みドメインにVercelのURLを追加してください。',
+        'auth/configuration-not-found':
+          'Firebase の設定が見つかりません。Vercelの環境変数（VITE_FIREBASE_*）が正しく設定されているか確認してください。',
+        'auth/popup-blocked':
+          'ポップアップがブロックされました。ブラウザのポップアップ許可設定を確認してください。',
+        'auth/network-request-failed':
+          'ネットワークエラーが発生しました。接続を確認してください。',
+        'auth/internal-error':
+          'Firebase内部エラー。環境変数（VITE_FIREBASE_*）が正しく設定されているか確認してください。',
+      };
+      setError(messages[code ?? ''] ?? `ログインに失敗しました（${code ?? 'unknown'}）`);
       setLoading(false);
     }
   }
