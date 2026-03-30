@@ -535,12 +535,14 @@ export function Setup({ onComplete, firebaseUser }: Props) {
               </p>
             </div>
 
+            {/* デプロイ手順 */}
             <div className="space-y-2">
               {[
-                { n: '01', text: '右上の「デプロイ」→「新しいデプロイ」をクリック' },
-                { n: '02', text: '⚙ アイコン →「ウェブアプリ」を選択' },
-                { n: '03', text: '「アクセスできるユーザー」を「全員」に変更' },
-                { n: '04', text: '「デプロイ」→「アクセスを承認」→「ウェブアプリURL」をコピー' },
+                { n: '01', text: '右上の「デプロイ」ボタン →「新しいデプロイ」をクリック' },
+                { n: '02', text: '左側の⚙アイコンをクリック →「ウェブアプリ」を選択' },
+                { n: '03', text: '「次のユーザーとして実行」→「自分」のまま変更しない' },
+                { n: '04', text: '「アクセスできるユーザー」→「全員（匿名ユーザーを含む）」を選択' },
+                { n: '05', text: '「デプロイ」ボタンをクリック' },
               ].map(({ n, text }) => (
                 <div key={n} className="flex items-start gap-3 p-3 bg-surface-container-low rounded-xl">
                   <span className="text-xs font-label font-bold text-primary bg-primary-fixed px-2 py-0.5 rounded flex-shrink-0">{n}</span>
@@ -549,9 +551,32 @@ export function Setup({ onComplete, firebaseUser }: Props) {
               ))}
             </div>
 
-            <div className="bg-error-container/30 rounded-xl p-3 flex items-start gap-2">
-              <span className="material-symbols-outlined text-error flex-shrink-0" style={{ fontSize: 16 }}>info</span>
-              <p className="text-xs font-label text-on-surface">「アクセスを承認」では自分のGoogleアカウントでログインして許可してください</p>
+            {/* 承認手順 */}
+            <div className="rounded-xl border border-outline-variant/40 overflow-hidden">
+              <div className="px-3 py-2 bg-surface-container flex items-center gap-2">
+                <span className="material-symbols-outlined text-tertiary" style={{ fontSize: 16 }}>verified_user</span>
+                <span className="text-xs font-label font-semibold text-on-surface">アクセスの承認手順</span>
+              </div>
+              <div className="p-3 space-y-2">
+                {[
+                  '「アクセスを承認」をクリック',
+                  'Googleアカウント選択画面で自分のアカウントを選ぶ',
+                  '「このアプリはGoogleで確認されていません」と表示されたら「詳細」をクリック',
+                  '「（安全ではないページ）に移動」をクリック',
+                  '「許可」をクリック',
+                  '表示された「ウェブアプリURL」をコピーする',
+                ].map((text, i) => (
+                  <div key={i} className="flex items-start gap-2">
+                    <span className="text-xs font-label font-bold text-secondary bg-secondary-container px-1.5 py-0.5 rounded flex-shrink-0">{i + 1}</span>
+                    <p className="text-xs font-label text-on-surface">{text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-primary-fixed/30 rounded-xl p-3 flex items-start gap-2">
+              <span className="material-symbols-outlined text-primary flex-shrink-0" style={{ fontSize: 16 }}>info</span>
+              <p className="text-xs font-label text-on-surface">「確認されていません」の警告はスクリプトが自分で作成したものであるため問題ありません。安心して許可してください。</p>
             </div>
 
             <div className="flex gap-3">
@@ -673,8 +698,9 @@ export function Setup({ onComplete, firebaseUser }: Props) {
         )}
       </div>
 
-      <p className="text-xs font-label text-on-surface-variant mt-6 text-center max-w-sm">
-        URLはブラウザのローカルストレージに保存されます。外部サーバーには送信されません。
+      <p className="text-xs font-label text-on-surface-variant mt-6 text-center max-w-sm leading-relaxed">
+        GAS URLはFirebaseに安全に保存されます。<br />
+        一度設定すれば、他の端末でも自動的に引き継がれます。
       </p>
     </div>
   );
