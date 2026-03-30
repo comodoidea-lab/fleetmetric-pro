@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  signInWithRedirect,
-  getRedirectResult,
+  signInWithPopup,
   GoogleAuthProvider,
   signOut,
 } from 'firebase/auth';
@@ -12,78 +11,58 @@ interface Props {
   onComplete: () => void;
 }
 
-// getRedirectResult にタイムアウトを付ける
-function getRedirectResultWithTimeout(ms = 8000) {
-  return Promise.race([
-    getRedirectResult(auth),
-    new Promise<null>((_, reject) =>
-      setTimeout(() => reject(new Error('timeout')), ms)
-    ),
-  ]);
-}
-
 export function Login({ onComplete }: Props) {
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     // Firebase設定が不完全な場合は即座にエラー表示
     if (!isFirebaseConfigured) {
       setError('Firebase の設定が不完全です。Vercelの環境変数（VITE_FIREBASE_*）を確認してください。');
-      setLoading(false);
-      return;
     }
-
-    getRedirectResultWithTimeout()
-      .then(async (result) => {
-        if (!result) {
-          // 通常のページロード（リダイレクト前）
-          setLoading(false);
-          return;
-        }
-        // リダイレクトから戻ってきた → ドメインチェック
-        const email = result.user.email ?? '';
-        const allowedDomain = getAllowedDomain();
-        if (allowedDomain) {
-          const domain = email.split('@')[1];
-          if (domain !== allowedDomain) {
-            await signOut(auth);
-            setError(`このアプリは @${allowedDomain} のアカウントのみ利用できます`);
-            setLoading(false);
-            return;
-          }
-        }
-        onComplete();
-      })
-      .catch((err: unknown) => {
-        const isTimeout = err instanceof Error && err.message === 'timeout';
-        if (isTimeout) {
-          setError('Firebase との接続がタイムアウトしました。Vercelの環境変数（VITE_FIREBASE_*）が正しく設定されているか確認してください。');
-          setLoading(false);
-          return;
-        }
-        const code = (err as { code?: string }).code;
-        const messages: Record<string, string> = {
-          'auth/unauthorized-domain':
-            'このドメインはFirebaseに承認されていません。Firebase Console → Authentication → 承認済みドメインにVercelのURLを追加してください。',
-          'auth/configuration-not-found':
-            'Firebase の設定が見つかりません。Vercelの環境変数（VITE_FIREBASE_*）が正しく設定されているか確認してください。',
-          'auth/network-request-failed':
-            'ネットワークエラーが発生しました。接続を確認してください。',
-          'auth/internal-error':
-            'Firebase内部エラー。環境変数（VITE_FIREBASE_*）が正しく設定されているか確認してください。',
-        };
-        setError(messages[code ?? ''] ?? `ログインに失敗しました（${code ?? err}）`);
-        setLoading(false);
-      });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function handleGoogleLogin() {
     setLoading(true);
     setError('');
-    const provider = new GoogleAuthProvider();
-    await signInWithRedirect(auth, provider);
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+
+      // ドメインチェック
+      const email = result.user.email ?? '';
+      const allowedDomain = getAllowedDomain();
+      if (allowedDomain) {
+        const domain = email.split('@')[1];
+        if (domain !== allowedDomain) {
+          await signOut(auth);
+          setError(`このアプリは @${allowedDomain} のアカウントのみ利用できます`);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // App.tsx の onAuthStateChanged が自動的に次の状態へ遷移する
+      onComplete();
+    } catch (err: unknown) {
+      const code = (err as { code?: string }).code;
+      const messages: Record<string, string> = {
+        'auth/popup-blocked':
+          'ポップアップがブロックされました。ブラウザのアドレスバー付近にある「ポップアップをブロック」の通知をクリックして許可してください。',
+        'auth/popup-closed-by-user':
+          'ログインがキャンセルされました。もう一度お試しください。',
+        'auth/unauthorized-domain':
+          'このドメインはFirebaseに承認されていません。Firebase Console → Authentication → 承認済みドメインにVercelのURLを追加してください。',
+        'auth/configuration-not-found':
+          'Firebase の設定が見つかりません。Vercelの環境変数（VITE_FIREBASE_*）が正しく設定されているか確認してください。',
+        'auth/network-request-failed':
+          'ネットワークエラーが発生しました。接続を確認してください。',
+        'auth/internal-error':
+          'Firebase内部エラー。環境変数（VITE_FIREBASE_*）が正しく設定されているか確認してください。',
+      };
+      setError(messages[code ?? ''] ?? `ログインに失敗しました（${code ?? String(err)}）`);
+      setLoading(false);
+    }
   }
 
   return (
@@ -139,7 +118,7 @@ export function Login({ onComplete }: Props) {
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
           )}
-          {loading ? '確認中...' : 'Googleでサインイン'}
+          {loading ? 'サインイン中...' : 'Googleでサインイン'}
         </button>
       </div>
 
