@@ -1,5 +1,10 @@
-import { useState } from 'react';
-import { signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
+import { useEffect, useState } from 'react';
+import {
+  signInWithRedirect,
+  getRedirectResult,
+  GoogleAuthProvider,
+  signOut,
+} from 'firebase/auth';
 import { auth } from '../firebase';
 import { getAllowedDomain } from '../config';
 
@@ -9,54 +14,56 @@ interface Props {
 
 export function Login({ onComplete }: Props) {
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // リダイレクト結果確認中はtrue
+
+  // リダイレクトから戻ってきた際に結果を処理
+  useEffect(() => {
+    getRedirectResult(auth)
+      .then(async (result) => {
+        if (!result) {
+          // 通常のページロード（リダイレクト前）
+          setLoading(false);
+          return;
+        }
+        // リダイレクトから戻ってきた → ドメインチェック
+        const email = result.user.email ?? '';
+        const allowedDomain = getAllowedDomain();
+        if (allowedDomain) {
+          const domain = email.split('@')[1];
+          if (domain !== allowedDomain) {
+            await signOut(auth);
+            setError(`このアプリは @${allowedDomain} のアカウントのみ利用できます`);
+            setLoading(false);
+            return;
+          }
+        }
+        onComplete();
+      })
+      .catch((err: unknown) => {
+        const code = (err as { code?: string }).code;
+        const messages: Record<string, string> = {
+          'auth/unauthorized-domain':
+            'このドメインはFirebaseに承認されていません。Firebase Console → Authentication → 承認済みドメインにVercelのURLを追加してください。',
+          'auth/configuration-not-found':
+            'Firebase の設定が見つかりません。Vercelの環境変数（VITE_FIREBASE_*）が正しく設定されているか確認してください。',
+          'auth/network-request-failed':
+            'ネットワークエラーが発生しました。接続を確認してください。',
+          'auth/internal-error':
+            'Firebase内部エラー。環境変数（VITE_FIREBASE_*）が正しく設定されているか確認してください。',
+        };
+        setError(messages[code ?? ''] ?? `ログインに失敗しました（${code ?? 'unknown'}）`);
+        setLoading(false);
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleGoogleLogin() {
     setLoading(true);
     setError('');
-
-    try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      const email = user.email ?? '';
-
-      // ドメインチェック
-      const allowedDomain = getAllowedDomain();
-      if (allowedDomain) {
-        const domain = email.split('@')[1];
-        if (domain !== allowedDomain) {
-          await signOut(auth);
-          setError(`このアプリは @${allowedDomain} のアカウントのみ利用できます`);
-          setLoading(false);
-          return;
-        }
-      }
-
-      onComplete();
-    } catch (err: unknown) {
-      const code = (err as { code?: string }).code;
-      // ユーザーがポップアップを閉じた場合は無視
-      if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
-        setLoading(false);
-        return;
-      }
-      // エラーコード別のメッセージ
-      const messages: Record<string, string> = {
-        'auth/unauthorized-domain':
-          'このドメインはFirebaseに承認されていません。Firebase Console → Authentication → 承認済みドメインにVercelのURLを追加してください。',
-        'auth/configuration-not-found':
-          'Firebase の設定が見つかりません。Vercelの環境変数（VITE_FIREBASE_*）が正しく設定されているか確認してください。',
-        'auth/popup-blocked':
-          'ポップアップがブロックされました。ブラウザのポップアップ許可設定を確認してください。',
-        'auth/network-request-failed':
-          'ネットワークエラーが発生しました。接続を確認してください。',
-        'auth/internal-error':
-          'Firebase内部エラー。環境変数（VITE_FIREBASE_*）が正しく設定されているか確認してください。',
-      };
-      setError(messages[code ?? ''] ?? `ログインに失敗しました（${code ?? 'unknown'}）`);
-      setLoading(false);
-    }
+    const provider = new GoogleAuthProvider();
+    // リダイレクト方式（モバイル含む全環境で動作）
+    await signInWithRedirect(auth, provider);
+    // ↑ この行以降は実行されない（ページ遷移が起きる）
   }
 
   return (
@@ -112,7 +119,7 @@ export function Login({ onComplete }: Props) {
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
           )}
-          {loading ? '認証中...' : 'Googleでサインイン'}
+          {loading ? '確認中...' : 'Googleでサインイン'}
         </button>
       </div>
 
