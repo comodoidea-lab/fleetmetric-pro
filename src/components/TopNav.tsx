@@ -6,11 +6,13 @@ import { SyncIndicator } from './SyncIndicator';
 import { AlertBadge } from './StatusBadge';
 import { getGasUrl, clearGasUrl, isSkipAuth } from '../config';
 import { apiInitSheets } from '../api/gasApi';
+import { ManualModal } from './ManualModal';
 
 export function TopNav() {
   const { dashboard, loadAll } = useStore();
   const [showAlerts, setShowAlerts] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showManual, setShowManual] = useState(false);
   const alertCount = dashboard?.alerts.length ?? 0;
   const firebaseUser = auth.currentUser;
   const skipAuth = isSkipAuth();
@@ -25,6 +27,7 @@ export function TopNav() {
   }
 
   return (
+    <>
     <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-lg shadow-sm">
       <div className="flex justify-between items-center px-4 lg:px-6 h-16 w-full">
         {/* Left */}
@@ -45,6 +48,15 @@ export function TopNav() {
             title="データを更新"
           >
             <span className="material-symbols-outlined" style={{ fontSize: 20 }}>refresh</span>
+          </button>
+
+          {/* Help / Manual */}
+          <button
+            onClick={() => setShowManual(true)}
+            className="p-2 rounded-full hover:bg-surface-container transition-colors text-on-surface-variant"
+            title="マニュアルを開く"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>help</span>
           </button>
 
           {/* Settings */}
@@ -193,5 +205,8 @@ export function TopNav() {
       </div>
       <div className="bg-surface-container-high h-px w-full absolute bottom-0" />
     </header>
+
+    {showManual && <ManualModal onClose={() => setShowManual(false)} />}
+  </>
   );
 }

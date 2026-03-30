@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { User } from 'firebase/auth';
 import { setGasUrl, setAllowedDomain, saveGasUrlToFirestore, isSkipAuth } from '../config';
+import { ManualModal } from '../components/ManualModal';
 
 const GAS_CODE = `// ============================================================
 // 営業車管理システム - Code.gs
@@ -345,6 +346,7 @@ export function Setup({ onComplete, firebaseUser }: Props) {
   const [testStatus, setTestStatus] = useState<TestStatus>('idle');
   const [testMessage, setTestMessage] = useState('');
   const [copied, setCopied] = useState(false);
+  const [showManual, setShowManual] = useState(false);
 
   async function handleCopy() {
     await navigator.clipboard.writeText(GAS_CODE);
@@ -420,14 +422,23 @@ export function Setup({ onComplete, firebaseUser }: Props) {
   return (
     <div className="min-h-screen bg-surface flex flex-col items-center justify-center p-4">
       {/* Logo */}
-      <div className="flex items-center gap-3 mb-10">
-        <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-sm">
-          <span className="material-symbols-outlined text-white text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>directions_car</span>
+      <div className="flex items-center justify-between w-full max-w-lg mb-10">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-sm">
+            <span className="material-symbols-outlined text-white text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>directions_car</span>
+          </div>
+          <div>
+            <p className="text-xl font-headline font-black text-primary leading-tight">FleetMetric Pro</p>
+            <p className="text-xs font-label uppercase tracking-widest text-on-surface-variant">初回セットアップ</p>
+          </div>
         </div>
-        <div>
-          <p className="text-xl font-headline font-black text-primary leading-tight">FleetMetric Pro</p>
-          <p className="text-xs font-label uppercase tracking-widest text-on-surface-variant">初回セットアップ</p>
-        </div>
+        <button
+          onClick={() => setShowManual(true)}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-surface-container-lowest border border-outline-variant/30 text-on-surface-variant hover:bg-surface-container hover:text-primary transition-colors shadow-sm"
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>menu_book</span>
+          <span className="text-xs font-label font-semibold">マニュアル</span>
+        </button>
       </div>
 
       {/* Step indicator */}
@@ -702,6 +713,8 @@ export function Setup({ onComplete, firebaseUser }: Props) {
         GAS URLはFirebaseに安全に保存されます。<br />
         一度設定すれば、他の端末でも自動的に引き継がれます。
       </p>
+
+      {showManual && <ManualModal onClose={() => setShowManual(false)} />}
     </div>
   );
 }
