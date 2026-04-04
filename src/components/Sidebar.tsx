@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
-import { getGasUrl, clearGasUrl } from '../config';
+import { getGasUrl, clearGasUrl, saveGasUrlToFirestore } from '../config';
+import { auth } from '../firebase';
 import { useStore } from '../store/store';
 import { apiInitSheets } from '../api/gasApi';
 import { useState } from 'react';
@@ -135,7 +136,12 @@ export function Sidebar() {
           title="セットアップをやり直す"
           message={'現在の接続設定がリセットされます。\nよろしいですか？'}
           confirmLabel="リセットする"
-          onConfirm={() => { clearGasUrl(); window.location.reload(); }}
+          onConfirm={async () => {
+            const user = auth.currentUser;
+            if (user) await saveGasUrlToFirestore(user.uid, '');
+            clearGasUrl();
+            window.location.reload();
+          }}
           onClose={() => setShowSetupResetConfirm(false)}
         />
       )}

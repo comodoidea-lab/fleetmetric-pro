@@ -4,7 +4,7 @@ import { auth } from '../firebase';
 import { useStore } from '../store/store';
 import { SyncIndicator } from './SyncIndicator';
 import { AlertBadge } from './StatusBadge';
-import { getGasUrl, clearGasUrl, isSkipAuth } from '../config';
+import { getGasUrl, clearGasUrl, isSkipAuth, saveGasUrlToFirestore } from '../config';
 import { apiInitSheets } from '../api/gasApi';
 import { ManualModal } from './ManualModal';
 import { useTheme, THEMES } from '../hooks/useTheme';
@@ -247,7 +247,13 @@ export function TopNav() {
         title="セットアップをやり直す"
         message={'現在の接続設定がリセットされます。\nよろしいですか？'}
         confirmLabel="リセットする"
-        onConfirm={() => { clearGasUrl(); window.location.reload(); }}
+        onConfirm={async () => {
+          if (!skipAuth && firebaseUser) {
+            await saveGasUrlToFirestore(firebaseUser.uid, '');
+          }
+          clearGasUrl();
+          window.location.reload();
+        }}
         onClose={() => setShowSetupResetConfirm(false)}
       />
     )}
