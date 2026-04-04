@@ -152,3 +152,13 @@ export async function apiInitSheets(): Promise<{ success: boolean; message: stri
   if (!getGasUrl()) return { success: true, message: 'モックモードで初期化スキップ' };
   return gasWrite('init');
 }
+
+export async function apiBackupNow(): Promise<{ success: boolean; message?: string; error?: string }> {
+  if (!getGasUrl()) return { success: true, message: 'モックモードでスキップ' };
+  return gasWrite('backup_now');
+}
+
+export async function apiSetupBackupTrigger(): Promise<{ success: boolean; message?: string; error?: string }> {
+  if (!getGasUrl()) return { success: true, message: 'モックモードでスキップ' };
+  return gasWrite('setup_backup_trigger');
+}

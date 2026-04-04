@@ -75,6 +75,12 @@ function doGet(e) {
       case 'deleteAccident':
         result = deleteAccidentRecord(e.parameter.id);
         break;
+      case 'backup_now':
+        result = backupNow();
+        break;
+      case 'setup_backup_trigger':
+        result = setupBackupTrigger();
+        break;
       default:
         result = { success: false, error: 'Unknown action: ' + action };
     }
@@ -334,6 +340,36 @@ function getStatistics() {
     totalMaintCost: allMaintenance.reduce((s,r) => s + (parseFloat(r['費用(円)']) || 0), 0),
     totalAccidentCost: allAccidents.reduce((s,r) => s + (parseFloat(r['費用(円)']) || 0), 0)
   };
+}
+
+function backupNow() {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var now = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd_HHmm');
+    DriveApp.getFileById(ss.getId()).makeCopy('FleetMetric バックアップ ' + now);
+    return { success: true, message: 'バックアップを作成しました（Googleドライブに保存）' };
+  } catch(e) { return { success: false, error: e.message }; }
+}
+
+function setupBackupTrigger() {
+  try {
+    ScriptApp.getProjectTriggers().forEach(function(t) {
+      if (t.getHandlerFunction() === 'weeklyBackup') ScriptApp.deleteTrigger(t);
+    });
+    ScriptApp.newTrigger('weeklyBackup')
+      .timeBased()
+      .everyWeeks(1)
+      .onWeekDay(ScriptApp.WeekDay.MONDAY)
+      .atHour(2)
+      .create();
+    return { success: true, message: '毎週月曜 午前2時に自動バックアップを設定しました' };
+  } catch(e) { return { success: false, error: e.message }; }
+}
+
+function weeklyBackup() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var now = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd');
+  DriveApp.getFileById(ss.getId()).makeCopy('FleetMetric バックアップ ' + now);
 }`;
 
 type Step = 1 | 2 | 3;

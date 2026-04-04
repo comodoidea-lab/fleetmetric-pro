@@ -9,19 +9,42 @@ import { apiInitSheets } from '../api/gasApi';
 import { ManualModal } from './ManualModal';
 import { useTheme, THEMES } from '../hooks/useTheme';
 import { DialogModal } from './DialogModal';
+import { apiBackupNow, apiSetupBackupTrigger } from '../api/gasApi';
 
 export function TopNav() {
-  const { dashboard, loadAll } = useStore();
+  const { dashboard, loadAll, vehicles, maintenance, fuel, accidents } = useStore();
   const [showAlerts, setShowAlerts] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showManual, setShowManual] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showSetupResetConfirm, setShowSetupResetConfirm] = useState(false);
   const [showInitSuccess, setShowInitSuccess] = useState(false);
+  const [backupResult, setBackupResult] = useState<{ ok: boolean; msg: string } | null>(null);
+  const [backupTriggerResult, setBackupTriggerResult] = useState<{ ok: boolean; msg: string } | null>(null);
   const { theme, setTheme } = useTheme();
   const alertCount = dashboard?.alerts.length ?? 0;
   const firebaseUser = auth.currentUser;
   const skipAuth = isSkipAuth();
+
+  function handleExportJson() {
+    const data = {
+      exportedAt: new Date().toISOString(),
+      vehicles,
+      maintenance,
+      fuel,
+      accidents,
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `fleetmetric-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setShowSettings(false);
+  }
 
   async function doLogout() {
     if (!skipAuth) {
@@ -162,6 +185,42 @@ export function TopNav() {
 
                     <div className="border-t border-outline-variant/20 my-1" />
 
+                    {!!getGasUrl() && (
+                      <button
+                        onClick={async () => {
+                          setShowSettings(false);
+                          const r = await apiBackupNow();
+                          setBackupResult({ ok: r.success, msg: r.success ? (r.message ?? 'バックアップ完了') : (r.error ?? 'バックアップ失敗') });
+                        }}
+                        className="flex items-center gap-2 w-full px-3 py-2.5 text-sm hover:bg-surface-container transition-colors text-on-surface rounded-lg text-left"
+                      >
+                        <span className="material-symbols-outlined text-primary" style={{ fontSize: 16 }}>backup</span>
+                        今すぐバックアップ
+                      </button>
+                    )}
+                    {!!getGasUrl() && (
+                      <button
+                        onClick={async () => {
+                          setShowSettings(false);
+                          const r = await apiSetupBackupTrigger();
+                          setBackupTriggerResult({ ok: r.success, msg: r.success ? (r.message ?? '設定完了') : (r.error ?? '設定失敗') });
+                        }}
+                        className="flex items-center gap-2 w-full px-3 py-2.5 text-sm hover:bg-surface-container transition-colors text-on-surface rounded-lg text-left"
+                      >
+                        <span className="material-symbols-outlined text-primary" style={{ fontSize: 16 }}>schedule</span>
+                        週次自動バックアップを設定
+                      </button>
+                    )}
+                    <button
+                      onClick={handleExportJson}
+                      className="flex items-center gap-2 w-full px-3 py-2.5 text-sm hover:bg-surface-container transition-colors text-on-surface rounded-lg text-left"
+                    >
+                      <span className="material-symbols-outlined text-primary" style={{ fontSize: 16 }}>download</span>
+                      JSONでエクスポート
+                    </button>
+
+                    <div className="border-t border-outline-variant/20 my-1" />
+
                     <button
                       onClick={() => { setShowSettings(false); setShowSetupResetConfirm(true); }}
                       className="flex items-center gap-2 w-full px-3 py-2.5 text-sm hover:bg-error-container/30 transition-colors text-error rounded-lg text-left"
@@ -263,6 +322,22 @@ export function TopNav() {
         title="完了"
         message="シートを初期化しました"
         onClose={() => setShowInitSuccess(false)}
+      />
+    )}
+    {backupResult && (
+      <DialogModal
+        variant={backupResult.ok ? 'info' : 'danger'}
+        title={backupResult.ok ? 'バックアップ完了' : 'バックアップ失敗'}
+        message={backupResult.msg}
+        onClose={() => setBackupResult(null)}
+      />
+    )}
+    {backupTriggerResult && (
+      <DialogModal
+        variant={backupTriggerResult.ok ? 'info' : 'danger'}
+        title={backupTriggerResult.ok ? '自動バックアップ設定完了' : '設定失敗'}
+        message={backupTriggerResult.msg}
+        onClose={() => setBackupTriggerResult(null)}
       />
     )}
   </>
