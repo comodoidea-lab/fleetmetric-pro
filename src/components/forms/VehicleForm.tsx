@@ -2,6 +2,15 @@ import { useState } from 'react';
 import { useStore } from '../../store/store';
 import { Vehicle } from '../../types';
 
+const VEHICLE_ICONS = [
+  { value: 'directions_car',  label: '乗用車' },
+  { value: 'two_wheeler',     label: 'バイク' },
+  { value: 'electric_bike',   label: '電動自転車' },
+  { value: 'local_shipping',  label: 'トラック' },
+  { value: 'airport_shuttle', label: 'バン' },
+  { value: 'directions_bus',  label: 'バス' },
+];
+
 interface Props {
   vehicle?: Vehicle | null;
   onClose: () => void;
@@ -21,6 +30,7 @@ export function VehicleForm({ vehicle, onClose }: Props) {
     '法定点検期限': vehicle?.['法定点検期限']?.replace(/\//g, '-') ?? '',
     'ステータス': vehicle?.['ステータス'] ?? '稼働中',
     '備考': vehicle?.['備考'] ?? '',
+    'アイコン': vehicle?.['アイコン'] ?? 'directions_car',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -37,6 +47,7 @@ export function VehicleForm({ vehicle, onClose }: Props) {
         ...form,
         '車検期限': form['車検期限'].replace(/-/g, '/'),
         '法定点検期限': form['法定点検期限'].replace(/-/g, '/'),
+        'アイコン': form['アイコン'],
       };
       if (isEdit && vehicle) {
         await updateVehicle({ ...vehicle, ...data });
@@ -55,6 +66,26 @@ export function VehicleForm({ vehicle, onClose }: Props) {
     <Modal title={isEdit ? '車両を編集' : '車両を追加'} onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && <p className="text-sm text-error bg-error-container px-3 py-2 rounded-lg">{error}</p>}
+
+        <Field label="車両アイコン" icon="category">
+          <div className="grid grid-cols-3 gap-2">
+            {VEHICLE_ICONS.map(ic => (
+              <button
+                key={ic.value}
+                type="button"
+                onClick={() => set('アイコン', ic.value)}
+                className={`flex flex-col items-center gap-1.5 py-2.5 px-2 rounded-lg text-xs font-label transition-all ${
+                  form['アイコン'] === ic.value
+                    ? 'bg-primary text-on-primary'
+                    : 'bg-surface-container-low hover:bg-surface-container text-on-surface'
+                }`}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 22 }}>{ic.value}</span>
+                {ic.label}
+              </button>
+            ))}
+          </div>
+        </Field>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="車両名 *" icon="directions_car">

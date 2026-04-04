@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ja"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-container-lowest": "#ffffff",
+              "background": "#f7fafc",
+              "on-primary-container": "#86a0cd",
+              "tertiary-container": "#003f23",
+              "surface-variant": "#e0e3e5",
+              "surface-dim": "#d7dadc",
+              "on-tertiary-fixed": "#002110",
+              "on-background": "#181c1e",
+              "primary-fixed-dim": "#adc7f7",
+              "on-secondary-fixed": "#111c2c",
+              "on-secondary-fixed-variant": "#3c475a",
+              "tertiary-fixed": "#91f8b8",
+              "surface-container-highest": "#e0e3e5",
+              "inverse-surface": "#2d3133",
+              "secondary": "#545f72",
+              "on-error": "#ffffff",
+              "secondary-fixed": "#d8e3fa",
+              "secondary-container": "#d5e0f7",
+              "on-tertiary-container": "#4bb278",
+              "surface-container-high": "#e5e9eb",
+              "inverse-on-surface": "#eef1f3",
+              "surface-bright": "#f7fafc",
+              "error": "#ba1a1a",
+              "on-surface": "#181c1e",
+              "on-primary-fixed": "#001b3c",
+              "surface-container": "#ebeef0",
+              "primary-container": "#1a365d",
+              "on-secondary-container": "#586377",
+              "on-surface-variant": "#43474e",
+              "tertiary": "#002713",
+              "primary-fixed": "#d6e3ff",
+              "on-tertiary-fixed-variant": "#00522f",
+              "on-error-container": "#93000a",
+              "on-primary-fixed-variant": "#2d476f",
+              "surface": "#f7fafc",
+              "on-secondary": "#ffffff",
+              "primary": "#002045",
+              "outline": "#74777f",
+              "error-container": "#ffdad6",
+              "surface-tint": "#455f88",
+              "on-primary": "#ffffff",
+              "surface-container-low": "#f1f4f6",
+              "outline-variant": "#c4c6cf",
+              "secondary-fixed-dim": "#bcc7dd",
+              "inverse-primary": "#adc7f7",
+              "on-tertiary": "#ffffff",
+              "tertiary-fixed-dim": "#74db9d"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: 2px solid #455f8833 !important;
+            border-color: transparent !important;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background font-body text-on-background antialiased pb-24">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-slate-50/80 backdrop-blur-xl shadow-sm flex items-center justify-between px-6 h-16 w-full">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-blue-900" data-icon="leaderboard">leaderboard</span>
+<h1 class="text-blue-900 font-manrope font-extrabold tracking-tighter text-xl">FleetMetric Pro</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="hover:bg-slate-100 transition-colors active:scale-95 duration-150 p-2 rounded-full">
+<span class="material-symbols-outlined text-blue-900" data-icon="notifications">notifications</span>
+</button>
+</div>
+</header>
+<main class="pt-24 px-4 max-w-md mx-auto">
+<div class="mb-8">
+<h2 class="font-headline font-bold text-2xl text-primary tracking-tight">メンテナンス記録</h2>
+<p class="text-secondary text-sm mt-1">車両の維持管理情報を入力してください</p>
+</div>
+<form class="space-y-6">
+<!-- Date Field -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-sm space-y-2">
+<label class="block font-headline font-semibold text-xs uppercase tracking-wider text-secondary">実施日</label>
+<div class="relative flex items-center">
+<input class="w-full bg-surface-container-low border-none rounded-lg h-14 px-4 text-on-surface font-medium focus:ring-0 appearance-none" type="date" value="2023-10-27"/>
+<span class="material-symbols-outlined absolute right-4 pointer-events-none text-secondary" data-icon="calendar_today">calendar_today</span>
+</div>
+</div>
+<!-- Vehicle Selection -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-sm space-y-2">
+<label class="block font-headline font-semibold text-xs uppercase tracking-wider text-secondary">車両選択</label>
+<div class="relative flex items-center">
+<select class="w-full bg-surface-container-low border-none rounded-lg h-14 px-4 text-on-surface font-medium focus:ring-0 appearance-none">
+<option>日野 プロフィア [品川 100 あ 12-34]</option>
+<option>いすゞ ギガ [足立 200 か 56-78]</option>
+<option>三菱ふそう スーパーグレート [横浜 300 さ 90-12]</option>
+</select>
+<span class="material-symbols-outlined absolute right-4 pointer-events-none text-secondary" data-icon="directions_car">directions_car</span>
+</div>
+</div>
+<!-- Maintenance Type Toggle -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-sm space-y-4">
+<label class="block font-headline font-semibold text-xs uppercase tracking-wider text-secondary">メンテナンス種別</label>
+<div class="grid grid-cols-2 gap-2">
+<button class="flex flex-col items-center justify-center p-4 rounded-xl bg-primary-container text-on-primary border-2 border-primary transition-all" type="button">
+<span class="material-symbols-outlined mb-1" data-icon="build">build</span>
+<span class="text-xs font-semibold">定期点検</span>
+</button>
+<button class="flex flex-col items-center justify-center p-4 rounded-xl bg-surface-container-low text-secondary hover:bg-surface-container-high transition-all" type="button">
+<span class="material-symbols-outlined mb-1" data-icon="oil_barrel">oil_barrel</span>
+<span class="text-xs font-semibold">オイル交換</span>
+</button>
+<button class="flex flex-col items-center justify-center p-4 rounded-xl bg-surface-container-low text-secondary hover:bg-surface-container-high transition-all" type="button">
+<span class="material-symbols-outlined mb-1" data-icon="tire_repair">tire_repair</span>
+<span class="text-xs font-semibold">タイヤ交換</span>
+</button>
+<button class="flex flex-col items-center justify-center p-4 rounded-xl bg-surface-container-low text-secondary hover:bg-surface-container-high transition-all" type="button">
+<span class="material-symbols-outlined mb-1" data-icon="more_horiz">more_horiz</span>
+<span class="text-xs font-semibold">その他修理</span>
+</button>
+</div>
+</div>
+<!-- Cost Field -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-sm space-y-2">
+<label class="block font-headline font-semibold text-xs uppercase tracking-wider text-secondary">費用 (税込)</label>
+<div class="relative flex items-center">
+<span class="absolute left-4 font-bold text-primary">¥</span>
+<input class="w-full bg-surface-container-low border-none rounded-lg h-14 pl-10 pr-4 text-on-surface font-bold text-lg focus:ring-0" placeholder="金額を入力" type="number"/>
+</div>
+</div>
+<!-- Notes Field -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-sm space-y-2">
+<label class="block font-headline font-semibold text-xs uppercase tracking-wider text-secondary">備考・メモ</label>
+<textarea class="w-full bg-surface-container-low border-none rounded-lg p-4 text-on-surface text-sm focus:ring-0 resize-none" placeholder="作業の詳細内容を入力してください..." rows="4"></textarea>
+</div>
+<!-- Action Buttons -->
+<div class="flex gap-4 pt-4">
+<button class="flex-1 h-14 bg-surface-container-high text-primary font-headline font-bold rounded-xl transition-all active:scale-95" type="button">
+                    キャンセル
+                </button>
+<button class="flex-1 h-14 bg-primary text-on-primary font-headline font-bold rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-95" type="submit">
+                    保存する
+                </button>
+</div>
+</form>
+<!-- Visual Anchor: Maintenance Illustration -->
+<div class="mt-12 mb-8 bg-surface-container-low rounded-3xl overflow-hidden h-48 relative">
+<img alt="Fleet Maintenance" class="w-full h-full object-cover opacity-60 mix-blend-multiply" data-alt="Modern high-tech vehicle maintenance facility with clean floors, professional tools, and soft cinematic lighting in blue tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGbiqnY6a1QQlm6Vf4F2cHb_qD2kRBPm4VPLpgiEoRx4gZGg32_0duO8SU0d-skC9dPlS0O_RKpr78nCo5y7qLAZ0JjeLWAIK5Z1LEoXNLIHxdJ-Z3UXuSthQ5N9RUGa0aPYE_5OqgmjbHk4S8whPg5dbBAIbHA_J5PtyF4XMxpuWiOwHmqcs3LBoDlEyhL6gWlWfq9D1rHMioN2BV8ybNp4Fv7xvsHOVw4u9kQLP3IieGd4sdI9fdpvlS9mxn8KQ-4Lqi4XqVV9Q"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent"></div>
+<div class="absolute bottom-4 left-6">
+<p class="text-white font-headline font-bold text-lg leading-tight">正確な記録が<br/>安全な運行を支えます</p>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-white/90 backdrop-blur-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.05)] rounded-t-2xl z-50">
+<a class="flex flex-col items-center justify-center text-slate-400 px-4 py-1.5 hover:text-blue-700 transition-transform active:scale-90" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="dashboard">dashboard</span>
+<span class="font-manrope font-semibold text-[11px] uppercase tracking-wider">Dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 px-4 py-1.5 hover:text-blue-700 transition-transform active:scale-90" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="directions_car">directions_car</span>
+<span class="font-manrope font-semibold text-[11px] uppercase tracking-wider">Vehicles</span>
+</a>
+<a class="flex flex-col items-center justify-center text-blue-900 bg-blue-50 rounded-xl px-4 py-1.5 transition-all" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="build" style="font-variation-settings: 'FILL' 1;">build</span>
+<span class="font-manrope font-semibold text-[11px] uppercase tracking-wider">Maintenance</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 px-4 py-1.5 hover:text-blue-700 transition-transform active:scale-90" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="assessment">assessment</span>
+<span class="font-manrope font-semibold text-[11px] uppercase tracking-wider">Reports</span>
+</a>
+</nav>
+</body></html>

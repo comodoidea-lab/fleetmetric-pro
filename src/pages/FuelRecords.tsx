@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useStore } from '../store/store';
 import { FuelForm } from '../components/forms/FuelForm';
+import { DialogModal } from '../components/DialogModal';
 
 export function FuelRecords() {
   const { fuel, deleteFuel } = useStore();
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const sorted = [...fuel]
     .sort((a, b) => new Date(b['日付']).getTime() - new Date(a['日付']).getTime())
@@ -86,7 +88,7 @@ export function FuelRecords() {
                 <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
                   <p className="text-sm font-bold text-on-surface">¥{Number(r['費用(円)']).toLocaleString()}</p>
                   <button
-                    onClick={() => { if (confirm('削除しますか？')) deleteFuel(r['記録ID']); }}
+                    onClick={() => setDeleteId(r['記録ID'])}
                     className="text-xs text-error hover:underline"
                   >削除</button>
                 </div>
@@ -97,6 +99,16 @@ export function FuelRecords() {
       </div>
 
       {showForm && <FuelForm onClose={() => setShowForm(false)} />}
+      {deleteId && (
+        <DialogModal
+          variant="danger"
+          title="記録を削除"
+          message="この給油記録を削除しますか？"
+          confirmLabel="削除する"
+          onConfirm={() => deleteFuel(deleteId)}
+          onClose={() => setDeleteId(null)}
+        />
+      )}
     </div>
   );
 }

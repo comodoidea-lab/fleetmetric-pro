@@ -25,13 +25,19 @@ function AppRoutes() {
 
   useEffect(() => {
     // 開発バイパスモード（VITE_SKIP_AUTH=true）
+    // GAS URL 未設定でもモックデータでアプリ画面を直接表示
     if (isSkipAuth()) {
-      setAppState(isSetupComplete() ? 'app' : 'setup');
+      setAppState('app');
       return;
     }
 
+    // 古いiOS/PWA環境でFirebaseが無反応のままになるのを防ぐ10秒タイムアウト
+    const authTimeout = setTimeout(() => setAppState('login'), 10000);
+
     // Firebase Auth 状態を監視
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      clearTimeout(authTimeout);
+
       if (!user) {
         setAppState('login');
         setFirebaseUser(null);
@@ -40,8 +46,12 @@ function AppRoutes() {
 
       setFirebaseUser(user);
 
-      // Firestore から GAS URL を取得
-      const gasUrl = await getGasUrlFromFirestore(user.uid);
+      // Firestore から GAS URL を取得（5秒タイムアウト付き）
+      const gasUrl = await Promise.race([
+        getGasUrlFromFirestore(user.uid),
+        new Promise<string>((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
+      ]).catch(() => '');
+
       if (gasUrl) {
         // localStorageにも反映（gasApi.ts が参照するため）
         setGasUrl(gasUrl);
@@ -51,7 +61,10 @@ function AppRoutes() {
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      clearTimeout(authTimeout);
+    };
   }, []);
 
   // データ自動同期（appになったタイミングで起動）

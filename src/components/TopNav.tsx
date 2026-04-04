@@ -7,18 +7,23 @@ import { AlertBadge } from './StatusBadge';
 import { getGasUrl, clearGasUrl, isSkipAuth } from '../config';
 import { apiInitSheets } from '../api/gasApi';
 import { ManualModal } from './ManualModal';
+import { useTheme, THEMES } from '../hooks/useTheme';
+import { DialogModal } from './DialogModal';
 
 export function TopNav() {
   const { dashboard, loadAll } = useStore();
   const [showAlerts, setShowAlerts] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showManual, setShowManual] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showSetupResetConfirm, setShowSetupResetConfirm] = useState(false);
+  const [showInitSuccess, setShowInitSuccess] = useState(false);
+  const { theme, setTheme } = useTheme();
   const alertCount = dashboard?.alerts.length ?? 0;
   const firebaseUser = auth.currentUser;
   const skipAuth = isSkipAuth();
 
-  async function handleLogout() {
-    if (!confirm('ログアウトしますか？')) return;
+  async function doLogout() {
     if (!skipAuth) {
       await signOut(auth);
     }
@@ -28,7 +33,7 @@ export function TopNav() {
 
   return (
     <>
-    <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-lg shadow-sm">
+    <header className="fixed top-0 w-full z-50 bg-surface-container-lowest/80 backdrop-blur-lg shadow-sm">
       <div className="flex justify-between items-center px-4 lg:px-6 h-16 w-full">
         {/* Left */}
         <div className="flex items-center gap-4 lg:gap-8">
@@ -89,7 +94,7 @@ export function TopNav() {
                           />
                         ) : (
                           <div className="w-8 h-8 rounded-full flex-shrink-0 bg-primary flex items-center justify-center">
-                            <span className="material-symbols-outlined text-white" style={{ fontSize: 16 }}>person</span>
+                            <span className="material-symbols-outlined text-on-primary" style={{ fontSize: 16 }}>person</span>
                           </div>
                         )}
                         <div className="min-w-0">
@@ -103,6 +108,29 @@ export function TopNav() {
                       </div>
                     )}
 
+                    <div className="px-3 py-2.5 rounded-lg bg-surface-container-low">
+                      <p className="text-xs font-label uppercase tracking-wider text-on-surface-variant mb-2">カラーテーマ</p>
+                      <div className="grid grid-cols-4 gap-1.5">
+                        {THEMES.map(t => (
+                          <button
+                            key={t.id}
+                            onClick={() => setTheme(t.id)}
+                            className={`flex flex-col items-center gap-1 py-2 px-1 rounded-lg transition-all ${
+                              theme === t.id
+                                ? 'bg-primary/10 ring-1 ring-primary'
+                                : 'hover:bg-surface-container'
+                            }`}
+                          >
+                            <span
+                              className="w-5 h-5 rounded-full border border-outline-variant/30 flex-shrink-0"
+                              style={{ background: t.color }}
+                            />
+                            <span className="text-[10px] font-label text-on-surface-variant leading-tight text-center">{t.labelJa}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
                     <div className="px-3 py-2 rounded-lg bg-surface-container-low">
                       <p className="text-xs font-label uppercase tracking-wider text-on-surface-variant mb-1">GAS接続URL</p>
                       <p className="text-xs font-label text-on-surface break-all">
@@ -115,7 +143,7 @@ export function TopNav() {
                         onClick={async () => {
                           await apiInitSheets();
                           setShowSettings(false);
-                          alert('シートを初期化しました');
+                          setShowInitSuccess(true);
                         }}
                         className="flex items-center gap-2 w-full px-3 py-2.5 text-sm hover:bg-surface-container transition-colors text-on-surface rounded-lg text-left"
                       >
@@ -135,12 +163,7 @@ export function TopNav() {
                     <div className="border-t border-outline-variant/20 my-1" />
 
                     <button
-                      onClick={() => {
-                        if (confirm('セットアップをやり直しますか？\n現在の接続設定がリセットされます。')) {
-                          clearGasUrl();
-                          window.location.reload();
-                        }
-                      }}
+                      onClick={() => { setShowSettings(false); setShowSetupResetConfirm(true); }}
                       className="flex items-center gap-2 w-full px-3 py-2.5 text-sm hover:bg-error-container/30 transition-colors text-error rounded-lg text-left"
                     >
                       <span className="material-symbols-outlined" style={{ fontSize: 16 }}>settings_backup_restore</span>
@@ -148,7 +171,7 @@ export function TopNav() {
                     </button>
 
                     <button
-                      onClick={handleLogout}
+                      onClick={() => { setShowSettings(false); setShowLogoutConfirm(true); }}
                       className="flex items-center gap-2 w-full px-3 py-2.5 text-sm hover:bg-error-container/30 transition-colors text-error rounded-lg text-left"
                     >
                       <span className="material-symbols-outlined" style={{ fontSize: 16 }}>logout</span>
@@ -168,7 +191,7 @@ export function TopNav() {
             >
               <span className="material-symbols-outlined">notifications</span>
               {alertCount > 0 && (
-                <span className="absolute top-2 right-2 w-2 h-2 bg-error rounded-full border-2 border-white" />
+                <span className="absolute top-2 right-2 w-2 h-2 bg-error rounded-full border-2 border-surface-container-lowest" />
               )}
             </button>
 
@@ -207,6 +230,35 @@ export function TopNav() {
     </header>
 
     {showManual && <ManualModal onClose={() => setShowManual(false)} />}
+
+    {showLogoutConfirm && (
+      <DialogModal
+        variant="danger"
+        title="ログアウト"
+        message="ログアウトしますか？"
+        confirmLabel="ログアウト"
+        onConfirm={doLogout}
+        onClose={() => setShowLogoutConfirm(false)}
+      />
+    )}
+    {showSetupResetConfirm && (
+      <DialogModal
+        variant="danger"
+        title="セットアップをやり直す"
+        message={'現在の接続設定がリセットされます。\nよろしいですか？'}
+        confirmLabel="リセットする"
+        onConfirm={() => { clearGasUrl(); window.location.reload(); }}
+        onClose={() => setShowSetupResetConfirm(false)}
+      />
+    )}
+    {showInitSuccess && (
+      <DialogModal
+        variant="info"
+        title="完了"
+        message="シートを初期化しました"
+        onClose={() => setShowInitSuccess(false)}
+      />
+    )}
   </>
   );
 }
