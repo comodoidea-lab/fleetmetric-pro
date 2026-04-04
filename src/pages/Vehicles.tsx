@@ -33,6 +33,7 @@ export function Vehicles() {
   const [showForm, setShowForm] = useState(false);
   const [editVehicle, setEditVehicle] = useState<(typeof vehicles)[0] | null>(null);
   const [menuId, setMenuId] = useState<string | null>(null);
+  const [menuDir, setMenuDir] = useState<'up' | 'down'>('down');
   const [deleteTarget, setDeleteTarget] = useState<(typeof vehicles)[0] | null>(null);
 
   const filtered = vehicles.filter(v => {
@@ -143,7 +144,11 @@ export function Vehicles() {
                   </Link>
                   <div className="relative">
                     <button
-                      onClick={() => setMenuId(menuId === v['車両ID'] ? null : v['車両ID'])}
+                      onClick={(e) => {
+                        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                        setMenuDir(window.innerHeight - rect.bottom < 120 ? 'up' : 'down');
+                        setMenuId(menuId === v['車両ID'] ? null : v['車両ID']);
+                      }}
                       className="p-2 rounded-full hover:bg-surface-container text-on-surface-variant transition-colors"
                     >
                       <span className="material-symbols-outlined" style={{ fontSize: 18 }}>more_vert</span>
@@ -151,7 +156,7 @@ export function Vehicles() {
                     {menuId === v['車両ID'] && (
                       <>
                         <div className="fixed inset-0 z-40" onClick={() => setMenuId(null)} />
-                        <div className="absolute right-0 top-10 bg-surface-container-lowest rounded-xl shadow-lg z-50 overflow-hidden w-40 border border-outline-variant/20">
+                        <div className={`absolute right-0 ${menuDir === 'up' ? 'bottom-10' : 'top-10'} bg-surface-container-lowest rounded-xl shadow-lg z-50 overflow-hidden w-40 border border-outline-variant/20`}>
                           <button
                             onClick={() => { setEditVehicle(v); setShowForm(true); setMenuId(null); }}
                             className="flex items-center gap-2 w-full px-4 py-3 text-sm hover:bg-surface-container transition-colors text-on-surface"
