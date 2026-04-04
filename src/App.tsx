@@ -12,7 +12,9 @@ import { Accidents } from './pages/Accidents';
 import { Reports } from './pages/Reports';
 import { Settings } from './pages/Settings';
 import { Setup } from './pages/Setup';
+import { GasUpdatePage } from './pages/GasUpdatePage';
 import { Login } from './pages/Login';
+import { GasUpdateModalProvider } from './context/GasUpdateModalContext';
 import { useStore } from './store/store';
 import { isSkipAuth, isSetupComplete, getGasUrlFromFirestore, setGasUrl } from './config';
 
@@ -105,18 +107,21 @@ function AppRoutes() {
 
   // ④ メインアプリ
   return (
-    <Layout>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/vehicles" element={<Vehicles />} />
-        <Route path="/vehicles/:id" element={<VehicleDetail />} />
-        <Route path="/maintenance" element={<Maintenance />} />
-        <Route path="/fuel" element={<FuelRecords />} />
-        <Route path="/accidents" element={<Accidents />} />
-        <Route path="/reports" element={<Reports />} />
-        <Route path="/settings" element={<Settings />} />
-      </Routes>
-    </Layout>
+    <GasUpdateModalProvider>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/vehicles" element={<Vehicles />} />
+          <Route path="/vehicles/:id" element={<VehicleDetail />} />
+          <Route path="/maintenance" element={<Maintenance />} />
+          <Route path="/fuel" element={<FuelRecords />} />
+          <Route path="/accidents" element={<Accidents />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/gas-update" element={<GasUpdatePage />} />
+        </Routes>
+      </Layout>
+    </GasUpdateModalProvider>
   );
 }
 

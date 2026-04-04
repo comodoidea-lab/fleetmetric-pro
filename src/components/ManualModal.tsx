@@ -11,7 +11,7 @@ interface Section {
   content: React.ReactNode;
 }
 
-function Step({ n, children, sub }: { n: string; children: React.ReactNode; sub?: boolean }) {
+export function ManualStep({ n, children, sub }: { n: string; children: React.ReactNode; sub?: boolean }) {
   return (
     <div className={`flex items-start gap-3 p-3 rounded-xl ${sub ? 'bg-surface-container-low/60' : 'bg-surface-container-low'}`}>
       <span className={`text-xs font-label font-bold flex-shrink-0 px-2 py-0.5 rounded ${sub ? 'bg-surface-container text-on-surface-variant' : 'bg-primary-fixed text-primary'}`}>{n}</span>
@@ -20,7 +20,7 @@ function Step({ n, children, sub }: { n: string; children: React.ReactNode; sub?
   );
 }
 
-function Note({ children, type = 'info' }: { children: React.ReactNode; type?: 'info' | 'warn' | 'tip' }) {
+export function ManualNote({ children, type = 'info' }: { children: React.ReactNode; type?: 'info' | 'warn' | 'tip' }) {
   const styles = {
     info: 'bg-primary-fixed/20 text-primary border-primary/20',
     warn: 'bg-error-container/20 text-error border-error/20',
@@ -35,7 +35,7 @@ function Note({ children, type = 'info' }: { children: React.ReactNode; type?: '
   );
 }
 
-function Heading({ children }: { children: React.ReactNode }) {
+export function ManualHeading({ children }: { children: React.ReactNode }) {
   return <h3 className="text-sm font-headline font-bold text-on-surface mt-4 mb-2 first:mt-0">{children}</h3>;
 }
 
@@ -75,23 +75,23 @@ const SECTIONS: Section[] = [
     title: 'スプレッドシートの準備',
     content: (
       <div className="space-y-2">
-        <Note type="info">このアプリのデータはすべてあなた自身のGoogleスプレッドシートに保存されます。まずスプレッドシートを作成してください。</Note>
-        <Heading>スプレッドシートを作成する</Heading>
+        <ManualNote type="info">このアプリのデータはすべてあなた自身のGoogleスプレッドシートに保存されます。まずスプレッドシートを作成してください。</ManualNote>
+        <ManualHeading>スプレッドシートを作成する</ManualHeading>
         <div className="space-y-1.5">
-          <Step n="01">
+          <ManualStep n="01">
             <span>
               <a href="https://sheets.new" target="_blank" rel="noopener noreferrer" className="text-primary underline">sheets.new</a>
               {' '}をブラウザで開いて、新しいGoogleスプレッドシートを作成する
             </span>
-          </Step>
-          <Step n="02">左上の「無題のスプレッドシート」をクリックして、わかりやすい名前に変更する（例：「営業車管理データ」）</Step>
+          </ManualStep>
+          <ManualStep n="02">左上の「無題のスプレッドシート」をクリックして、わかりやすい名前に変更する（例：「営業車管理データ」）</ManualStep>
         </div>
-        <Heading>Apps Scriptを開く</Heading>
+        <ManualHeading>Apps Scriptを開く</ManualHeading>
         <div className="space-y-1.5">
-          <Step n="03">スプレッドシートのメニューから「拡張機能」→「Apps Script」をクリック</Step>
-          <Step n="04">Apps Scriptエディタが別タブで開く。左上の「無題のプロジェクト」をクリックして名前を変更する（例：「FleetMetric Pro」）</Step>
+          <ManualStep n="03">スプレッドシートのメニューから「拡張機能」→「Apps Script」をクリック</ManualStep>
+          <ManualStep n="04">Apps Scriptエディタが別タブで開く。左上の「無題のプロジェクト」をクリックして名前を変更する（例：「FleetMetric Pro」）</ManualStep>
         </div>
-        <Note type="tip">スプレッドシートとGASプロジェクトに名前をつけておくと、後から見つけやすくなります。</Note>
+        <ManualNote type="tip">スプレッドシートとGASプロジェクトに名前をつけておくと、後から見つけやすくなります。</ManualNote>
       </div>
     ),
   },
@@ -101,15 +101,15 @@ const SECTIONS: Section[] = [
     title: 'GASスクリプトの設置',
     content: (
       <div className="space-y-2">
-        <Note type="info">Apps Scriptエディタにプログラムコードを貼り付けます。コードはFleetMetric Proのセットアップ画面からコピーできます。</Note>
+        <ManualNote type="info">Apps Scriptエディタにプログラムコードを貼り付けます。コードはFleetMetric Proのセットアップ画面からコピーできます。</ManualNote>
         <div className="space-y-1.5">
-          <Step n="01">Apps Scriptエディタの左側にある「Code.gs」を選択する（デフォルトで選択されているはず）</Step>
-          <Step n="02">エディタ内のコード（function myFunction() &#123;&#125; など）を全て選択して削除する（Ctrl+A → Delete）</Step>
-          <Step n="03">FleetMetric Proのセットアップ画面（STEP 1）の「コードをコピー」ボタンを押す</Step>
-          <Step n="04">Apps Scriptエディタに貼り付ける（Ctrl+V）</Step>
-          <Step n="05">保存する（Ctrl+S または Cmd+S）。フロッピーディスクのアイコンをクリックしてもOK</Step>
+          <ManualStep n="01">Apps Scriptエディタの左側にある「Code.gs」を選択する（デフォルトで選択されているはず）</ManualStep>
+          <ManualStep n="02">エディタ内のコード（function myFunction() &#123;&#125; など）を全て選択して削除する（Ctrl+A → Delete）</ManualStep>
+          <ManualStep n="03">FleetMetric Proのセットアップ画面（STEP 1）の「コードをコピー」ボタンを押す</ManualStep>
+          <ManualStep n="04">Apps Scriptエディタに貼り付ける（Ctrl+V）</ManualStep>
+          <ManualStep n="05">保存する（Ctrl+S または Cmd+S）。フロッピーディスクのアイコンをクリックしてもOK</ManualStep>
         </div>
-        <Note type="tip">コードが正しく貼り付けられると、エディタ内に日本語のコメントが大量に表示されます。</Note>
+        <ManualNote type="tip">コードが正しく貼り付けられると、エディタ内に日本語のコメントが大量に表示されます。</ManualNote>
       </div>
     ),
   },
@@ -119,78 +119,30 @@ const SECTIONS: Section[] = [
     title: 'GASのデプロイ（公開設定）',
     content: (
       <div className="space-y-2">
-        <Note type="info">スクリプトをウェブアプリとして公開し、FleetMetric Proから接続できるようにします。</Note>
-        <Heading>新しいデプロイを作成する</Heading>
+        <ManualNote type="info">スクリプトをウェブアプリとして公開し、FleetMetric Proから接続できるようにします。</ManualNote>
+        <ManualHeading>新しいデプロイを作成する</ManualHeading>
         <div className="space-y-1.5">
-          <Step n="01">Apps Scriptエディタの右上にある「デプロイ」ボタンをクリック →「新しいデプロイ」を選択</Step>
-          <Step n="02">左側の歯車（⚙）アイコンをクリック →「ウェブアプリ」を選択</Step>
-          <Step n="03">「次のユーザーとして実行」は「自分（＊＊＊@gmail.com）」のまま変更しない</Step>
-          <Step n="04">「アクセスできるユーザー」のドロップダウンを「<strong>全員（匿名ユーザーを含む）</strong>」に変更する</Step>
-          <Step n="05">「デプロイ」ボタンをクリック</Step>
+          <ManualStep n="01">Apps Scriptエディタの右上にある「デプロイ」ボタンをクリック →「新しいデプロイ」を選択</ManualStep>
+          <ManualStep n="02">左側の歯車（⚙）アイコンをクリック →「ウェブアプリ」を選択</ManualStep>
+          <ManualStep n="03">「次のユーザーとして実行」は「自分（＊＊＊@gmail.com）」のまま変更しない</ManualStep>
+          <ManualStep n="04">「アクセスできるユーザー」のドロップダウンを「<strong>全員（匿名ユーザーを含む）</strong>」に変更する</ManualStep>
+          <ManualStep n="05">「デプロイ」ボタンをクリック</ManualStep>
         </div>
-        <Heading>アクセスを承認する</Heading>
+        <ManualHeading>アクセスを承認する</ManualHeading>
         <div className="space-y-1.5">
-          <Step n="06">「アクセスを承認」ボタンをクリック</Step>
-          <Step n="07">Googleアカウントの選択画面が表示されるので、スプレッドシートのオーナーアカウントを選ぶ</Step>
-          <Step n="08">「このアプリはGoogleで確認されていません」という画面が表示されたら「詳細」をクリック</Step>
-          <Step n="09">「（安全ではないページ）に移動」をクリック</Step>
-          <Step n="10">「許可」をクリックして権限を付与する</Step>
+          <ManualStep n="06">「アクセスを承認」ボタンをクリック</ManualStep>
+          <ManualStep n="07">Googleアカウントの選択画面が表示されるので、スプレッドシートのオーナーアカウントを選ぶ</ManualStep>
+          <ManualStep n="08">「このアプリはGoogleで確認されていません」という画面が表示されたら「詳細」をクリック</ManualStep>
+          <ManualStep n="09">「（安全ではないページ）に移動」をクリック</ManualStep>
+          <ManualStep n="10">「許可」をクリックして権限を付与する</ManualStep>
         </div>
-        <Note type="warn">「確認されていません」の警告は、自分で作成したスクリプトをGoogleに審査申請していないためです。自分で作成・管理するスクリプトなので安心して許可してください。</Note>
-        <Heading>ウェブアプリURLをコピーする</Heading>
+        <ManualNote type="warn">「確認されていません」の警告は、自分で作成したスクリプトをGoogleに審査申請していないためです。自分で作成・管理するスクリプトなので安心して許可してください。</ManualNote>
+        <ManualHeading>ウェブアプリURLをコピーする</ManualHeading>
         <div className="space-y-1.5">
-          <Step n="11">「デプロイを更新しました」画面に表示される「ウェブアプリURL」をコピーする</Step>
-          <Step n="12">URLは「https://script.google.com/macros/s/...」で始まる長いURLです</Step>
+          <ManualStep n="11">「デプロイを更新しました」画面に表示される「ウェブアプリURL」をコピーする</ManualStep>
+          <ManualStep n="12">URLは「https://script.google.com/macros/s/...」で始まる長いURLです</ManualStep>
         </div>
-        <Note type="tip">URLはどこかに控えておくと安心ですが、FleetMetric ProのGoogleアカウントに保存されるので紛失しても設定画面から確認できます。</Note>
-      </div>
-    ),
-  },
-  {
-    id: 'update',
-    icon: 'system_update',
-    title: 'GASスクリプトを更新する',
-    content: (
-      <div className="space-y-3">
-        <Note type="warn">スクリプトを更新するときは必ず「デプロイを管理」から行ってください。「新しいデプロイ」を使うと新しいURLが発行され、データへの接続が切れます。</Note>
-
-        {/* NG vs OK 比較 */}
-        <div className="grid grid-cols-2 gap-2">
-          <div className="p-3 rounded-xl border-2 border-error/40 bg-error-container/10">
-            <div className="flex items-center gap-1.5 mb-2">
-              <span className="material-symbols-outlined text-error" style={{ fontSize: 16 }}>cancel</span>
-              <p className="text-xs font-label font-bold text-error">NG — やってはいけない</p>
-            </div>
-            <p className="text-xs font-label text-on-surface leading-relaxed">「デプロイ」→<br /><strong>「新しいデプロイ」</strong></p>
-            <p className="text-xs font-label text-error mt-1.5">新しいURLが発行される → 既存データへの接続が切れる</p>
-          </div>
-          <div className="p-3 rounded-xl border-2 border-tertiary-fixed/60 bg-tertiary-fixed/10">
-            <div className="flex items-center gap-1.5 mb-2">
-              <span className="material-symbols-outlined text-on-tertiary-fixed-variant" style={{ fontSize: 16 }}>check_circle</span>
-              <p className="text-xs font-label font-bold text-on-tertiary-fixed-variant">OK — 正しい手順</p>
-            </div>
-            <p className="text-xs font-label text-on-surface leading-relaxed">「デプロイ」→<br /><strong>「デプロイを管理」</strong></p>
-            <p className="text-xs font-label text-on-tertiary-fixed-variant mt-1.5">URLそのまま → データ接続を維持</p>
-          </div>
-        </div>
-
-        <Heading>正しい更新手順</Heading>
-        <div className="space-y-1.5">
-          <Step n="01">スプレッドシートのメニュー「拡張機能」→「Apps Script」でGASエディタを開く</Step>
-          <Step n="02">「Code.gs」を選択し、内容を全選択（Ctrl+A）して削除</Step>
-          <Step n="03">FleetMetric Proのセットアップ画面 Step 1 の「コードをコピー」ボタンで最新コードをコピーして貼り付け、保存（Ctrl+S）</Step>
-          <Step n="04">右上「デプロイ」→ <strong>「デプロイを管理」</strong> をクリック（「新しいデプロイ」ではない）</Step>
-          <Step n="05">既存のデプロイの右にある鉛筆アイコン（✏️）をクリック</Step>
-          <Step n="06">「バージョン」ドロップダウンを <strong>「新バージョン」</strong> に変更</Step>
-          <Step n="07">「デプロイ」ボタンをクリック → 完了</Step>
-        </div>
-        <Note type="info">URLは変わりません。アプリ側の再設定は不要です。</Note>
-
-        <Heading>更新後にやること</Heading>
-        <div className="space-y-1.5">
-          <Step n="08">アプリの設定（⚙）→ 「スプレッドシートを初期化」を実行する</Step>
-        </div>
-        <Note type="tip">「スプレッドシートを初期化」はシートのヘッダー行を更新するだけで、入力済みのデータは一切削除されません。</Note>
+        <ManualNote type="tip">URLはどこかに控えておくと安心ですが、FleetMetric ProのGoogleアカウントに保存されるので紛失しても設定画面から確認できます。</ManualNote>
       </div>
     ),
   },
@@ -201,14 +153,14 @@ const SECTIONS: Section[] = [
     content: (
       <div className="space-y-2">
         <div className="space-y-1.5">
-          <Step n="01">FleetMetric Proのセットアップ画面（STEP 3）に戻る</Step>
-          <Step n="02">「GAS ウェブアプリ URL」の入力欄にコピーしたURLを貼り付ける</Step>
-          <Step n="03">「アクセス許可する Google ドメイン」は任意入力。社内メールアドレスのドメインを入れると、そのドメイン以外のGoogleアカウントのログインを拒否できる（例: company.co.jp）</Step>
-          <Step n="04">「接続テスト」ボタンをクリックする</Step>
-          <Step n="05">「接続成功！スプレッドシートを初期化しました」と表示されたらセットアップ完了</Step>
+          <ManualStep n="01">FleetMetric Proのセットアップ画面（STEP 3）に戻る</ManualStep>
+          <ManualStep n="02">「GAS ウェブアプリ URL」の入力欄にコピーしたURLを貼り付ける</ManualStep>
+          <ManualStep n="03">「アクセス許可する Google ドメイン」は任意入力。社内メールアドレスのドメインを入れると、そのドメイン以外のGoogleアカウントのログインを拒否できる（例: company.co.jp）</ManualStep>
+          <ManualStep n="04">「接続テスト」ボタンをクリックする</ManualStep>
+          <ManualStep n="05">「接続成功！スプレッドシートを初期化しました」と表示されたらセットアップ完了</ManualStep>
         </div>
-        <Note type="info">初回接続時にスプレッドシートへ「車両マスタ」「メンテナンス記録」「給油記録」「事故・修理履歴」の4つのシートが自動作成されます。</Note>
-        <Heading>2台目以降の端末でログインする場合</Heading>
+        <ManualNote type="info">初回接続時にスプレッドシートへ「車両マスタ」「メンテナンス記録」「給油記録」「事故・修理履歴」の4つのシートが自動作成されます。</ManualNote>
+        <ManualHeading>2台目以降の端末でログインする場合</ManualHeading>
         <p className="text-sm font-label text-on-surface-variant leading-relaxed">
           同じGoogleアカウントでログインするだけで、GAS URLの再入力は不要です。自動的に前回の設定が引き継がれてダッシュボードが表示されます。
         </p>
@@ -254,19 +206,19 @@ const SECTIONS: Section[] = [
         <p className="text-sm font-label text-on-surface-variant leading-relaxed">
           管理する車両を登録・編集・削除できます。
         </p>
-        <Heading>車両を登録する</Heading>
+        <ManualHeading>車両を登録する</ManualHeading>
         <div className="space-y-1.5">
-          <Step n="01">右下または右上の「＋ 車両を追加」ボタンをタップ</Step>
-          <Step n="02">車両名・ナンバー・メーカー・車種・年式を入力</Step>
-          <Step n="03">車検期限・法定点検期限を入力（アラート通知に使用）</Step>
-          <Step n="04">ステータスを選択（稼働中・点検中・修理中・廃車予定）</Step>
-          <Step n="05">「保存」ボタンをタップ</Step>
+          <ManualStep n="01">右下または右上の「＋ 車両を追加」ボタンをタップ</ManualStep>
+          <ManualStep n="02">車両名・ナンバー・メーカー・車種・年式を入力</ManualStep>
+          <ManualStep n="03">車検期限・法定点検期限を入力（アラート通知に使用）</ManualStep>
+          <ManualStep n="04">ステータスを選択（稼働中・点検中・修理中・廃車予定）</ManualStep>
+          <ManualStep n="05">「保存」ボタンをタップ</ManualStep>
         </div>
-        <Heading>車両の詳細を見る</Heading>
+        <ManualHeading>車両の詳細を見る</ManualHeading>
         <p className="text-sm font-label text-on-surface-variant leading-relaxed">
           車両一覧のカードをタップすると、その車両のメンテナンス履歴・給油履歴・事故修理履歴が一覧表示されます。
         </p>
-        <Note type="tip">車検期限を登録しておくと、30日前からダッシュボードにアラートが表示されます。</Note>
+        <ManualNote type="tip">車検期限を登録しておくと、30日前からダッシュボードにアラートが表示されます。</ManualNote>
       </div>
     ),
   },
@@ -279,15 +231,15 @@ const SECTIONS: Section[] = [
         <p className="text-sm font-label text-on-surface-variant leading-relaxed">
           オイル交換・タイヤ交換・定期点検などのメンテナンス履歴を記録します。
         </p>
-        <Heading>記録を追加する</Heading>
+        <ManualHeading>記録を追加する</ManualHeading>
         <div className="space-y-1.5">
-          <Step n="01">「＋ メンテナンスを記録」ボタンをタップ</Step>
-          <Step n="02">対象の車両を選択</Step>
-          <Step n="03">日付・走行距離・作業内容・費用を入力</Step>
-          <Step n="04">業者名・次回予定日を入力（任意）</Step>
-          <Step n="05">「保存」ボタンをタップ</Step>
+          <ManualStep n="01">「＋ メンテナンスを記録」ボタンをタップ</ManualStep>
+          <ManualStep n="02">対象の車両を選択</ManualStep>
+          <ManualStep n="03">日付・走行距離・作業内容・費用を入力</ManualStep>
+          <ManualStep n="04">業者名・次回予定日を入力（任意）</ManualStep>
+          <ManualStep n="05">「保存」ボタンをタップ</ManualStep>
         </div>
-        <Note type="tip">走行距離を継続して記録することで、レポート画面で走行距離の推移が確認できます。</Note>
+        <ManualNote type="tip">走行距離を継続して記録することで、レポート画面で走行距離の推移が確認できます。</ManualNote>
       </div>
     ),
   },
@@ -300,15 +252,15 @@ const SECTIONS: Section[] = [
         <p className="text-sm font-label text-on-surface-variant leading-relaxed">
           給油のたびに記録することで、月別燃料費の集計やレポートに活用できます。
         </p>
-        <Heading>記録を追加する</Heading>
+        <ManualHeading>記録を追加する</ManualHeading>
         <div className="space-y-1.5">
-          <Step n="01">「＋ 給油を記録」ボタンをタップ</Step>
-          <Step n="02">対象の車両を選択</Step>
-          <Step n="03">日付・走行距離・給油量・単価を入力（費用は自動計算されます）</Step>
-          <Step n="04">ガソリンスタンド名を入力（任意）</Step>
-          <Step n="05">「保存」ボタンをタップ</Step>
+          <ManualStep n="01">「＋ 給油を記録」ボタンをタップ</ManualStep>
+          <ManualStep n="02">対象の車両を選択</ManualStep>
+          <ManualStep n="03">日付・走行距離・給油量・単価を入力（費用は自動計算されます）</ManualStep>
+          <ManualStep n="04">ガソリンスタンド名を入力（任意）</ManualStep>
+          <ManualStep n="05">「保存」ボタンをタップ</ManualStep>
         </div>
-        <Note type="tip">給油量と単価を入力すると費用が自動計算されます。費用を直接入力することもできます。</Note>
+        <ManualNote type="tip">給油量と単価を入力すると費用が自動計算されます。費用を直接入力することもできます。</ManualNote>
       </div>
     ),
   },
@@ -321,13 +273,13 @@ const SECTIONS: Section[] = [
         <p className="text-sm font-label text-on-surface-variant leading-relaxed">
           事故・修理の履歴を記録します。保険対応や修理費の管理に役立ちます。
         </p>
-        <Heading>記録を追加する</Heading>
+        <ManualHeading>記録を追加する</ManualHeading>
         <div className="space-y-1.5">
-          <Step n="01">「＋ 事故・修理を記録」ボタンをタップ</Step>
-          <Step n="02">対象の車両を選択</Step>
-          <Step n="03">発生日・内容・損傷箇所・費用を入力</Step>
-          <Step n="04">修理業者・完了日を入力（任意）</Step>
-          <Step n="05">「保存」ボタンをタップ</Step>
+          <ManualStep n="01">「＋ 事故・修理を記録」ボタンをタップ</ManualStep>
+          <ManualStep n="02">対象の車両を選択</ManualStep>
+          <ManualStep n="03">発生日・内容・損傷箇所・費用を入力</ManualStep>
+          <ManualStep n="04">修理業者・完了日を入力（任意）</ManualStep>
+          <ManualStep n="05">「保存」ボタンをタップ</ManualStep>
         </div>
       </div>
     ),
@@ -366,14 +318,15 @@ const SECTIONS: Section[] = [
     title: '設定・よくある質問',
     content: (
       <div className="space-y-4">
-        <Heading>設定メニューについて</Heading>
+        <ManualHeading>設定メニューについて</ManualHeading>
         <p className="text-sm font-label text-on-surface-variant leading-relaxed">
           右上の歯車（⚙）アイコンから設定メニューを開けます。
         </p>
         <div className="space-y-2">
           {[
-            { label: 'スプレッドシートを初期化', desc: 'シートのヘッダーを再作成します。データは削除されません。' },
+            { label: 'スプレッドシートを初期化', desc: 'シートのヘッダーを再作成します。データは削除されません。GAS を更新したあとも実行してください。' },
             { label: 'データを再同期', desc: 'スプレッドシートから最新データを取得します。' },
+            { label: 'GASスクリプトの更新', desc: 'ダッシュボードに表示されたときは、設定または GAS アップデート画面の手順に従ってください。' },
             { label: 'セットアップをやり直す', desc: 'GAS URLをリセットして初回セットアップ画面に戻ります。' },
             { label: 'ログアウト', desc: 'Googleアカウントからログアウトします。データは保持されます。' },
           ].map(({ label, desc }) => (
@@ -383,7 +336,7 @@ const SECTIONS: Section[] = [
             </div>
           ))}
         </div>
-        <Heading>よくある質問</Heading>
+        <ManualHeading>よくある質問</ManualHeading>
         <div className="space-y-2">
           {[
             {

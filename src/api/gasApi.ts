@@ -5,6 +5,7 @@
 // This bypasses CORS restrictions for external domains (GitHub Pages).
 
 import { getGasUrl } from '../config';
+import { GAS_API_VERSION } from '../version';
 import {
   Vehicle, MaintenanceRecord, AccidentRecord, FuelRecord,
   DashboardData, Statistics,
@@ -151,4 +152,17 @@ export async function apiGetStatistics(): Promise<Statistics> {
 export async function apiInitSheets(): Promise<{ success: boolean; message: string }> {
   if (!getGasUrl()) return { success: true, message: 'モックモードで初期化スキップ' };
   return gasWrite('init');
+}
+
+export interface GasConnectionInfo {
+  spreadsheetUrl: string;
+  scriptId: string;
+  gasApiVersion: number;
+}
+
+export async function apiGetConnectionInfo(): Promise<GasConnectionInfo> {
+  if (!getGasUrl()) {
+    return { spreadsheetUrl: '', scriptId: '', gasApiVersion: GAS_API_VERSION };
+  }
+  return gasGet<GasConnectionInfo>('connectionInfo');
 }

@@ -3,7 +3,7 @@ import { User } from 'firebase/auth';
 import { setGasUrl, setAllowedDomain, saveGasUrlToFirestore, isSkipAuth } from '../config';
 import { ManualModal } from '../components/ManualModal';
 
-const GAS_CODE = `// ============================================================
+export const GAS_CODE = `// ============================================================
 // 営業車管理システム - Code.gs
 // Google Apps Script サーバーサイドコード
 // ============================================================
@@ -14,6 +14,9 @@ const SHEET = {
   ACCIDENTS:   '事故・修理履歴',
   FUEL:        '給油記録'
 };
+
+/** FleetMetric Pro アプリ側の GAS_API_VERSION と揃える */
+const GAS_API_VERSION = 1;
 
 function doGet(e) {
   if (!e || !e.parameter || !e.parameter.action) {
@@ -47,6 +50,9 @@ function doGet(e) {
         break;
       case 'statistics':
         result = { success: true, data: getStatistics() };
+        break;
+      case 'connectionInfo':
+        result = { success: true, data: getConnectionInfo() };
         break;
       case 'addVehicle':
         result = addVehicle(JSON.parse(e.parameter.data));
@@ -333,6 +339,15 @@ function getStatistics() {
     totalFuelCost: allFuel.reduce((s,r) => s + (parseFloat(r['費用(円)']) || 0), 0),
     totalMaintCost: allMaintenance.reduce((s,r) => s + (parseFloat(r['費用(円)']) || 0), 0),
     totalAccidentCost: allAccidents.reduce((s,r) => s + (parseFloat(r['費用(円)']) || 0), 0)
+  };
+}
+
+function getConnectionInfo() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  return {
+    spreadsheetUrl: ss ? ss.getUrl() : '',
+    scriptId: ScriptApp.getScriptId(),
+    gasApiVersion: GAS_API_VERSION
   };
 }
 `;
