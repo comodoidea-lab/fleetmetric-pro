@@ -155,10 +155,18 @@ export async function apiInitSheets(): Promise<{ success: boolean; message: stri
 
 export async function apiBackupNow(): Promise<{ success: boolean; message?: string; error?: string }> {
   if (!getGasUrl()) return { success: true, message: 'モックモードでスキップ' };
-  return gasWrite('backup_now');
+  try {
+    return await gasWrite('backup_now');
+  } catch (e) {
+    return { success: false, error: e instanceof Error ? e.message : 'バックアップ失敗' };
+  }
 }
 
 export async function apiSetupBackupTrigger(): Promise<{ success: boolean; message?: string; error?: string }> {
   if (!getGasUrl()) return { success: true, message: 'モックモードでスキップ' };
-  return gasWrite('setup_backup_trigger');
+  try {
+    return await gasWrite('setup_backup_trigger');
+  } catch (e) {
+    return { success: false, error: e instanceof Error ? e.message : 'トリガー設定失敗' };
+  }
 }
