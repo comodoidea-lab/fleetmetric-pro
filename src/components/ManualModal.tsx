@@ -147,6 +147,54 @@ const SECTIONS: Section[] = [
     ),
   },
   {
+    id: 'update',
+    icon: 'system_update',
+    title: 'GASスクリプトを更新する',
+    content: (
+      <div className="space-y-3">
+        <Note type="warn">スクリプトを更新するときは必ず「デプロイを管理」から行ってください。「新しいデプロイ」を使うと新しいURLが発行され、データへの接続が切れます。</Note>
+
+        {/* NG vs OK 比較 */}
+        <div className="grid grid-cols-2 gap-2">
+          <div className="p-3 rounded-xl border-2 border-error/40 bg-error-container/10">
+            <div className="flex items-center gap-1.5 mb-2">
+              <span className="material-symbols-outlined text-error" style={{ fontSize: 16 }}>cancel</span>
+              <p className="text-xs font-label font-bold text-error">NG — やってはいけない</p>
+            </div>
+            <p className="text-xs font-label text-on-surface leading-relaxed">「デプロイ」→<br /><strong>「新しいデプロイ」</strong></p>
+            <p className="text-xs font-label text-error mt-1.5">新しいURLが発行される → 既存データへの接続が切れる</p>
+          </div>
+          <div className="p-3 rounded-xl border-2 border-tertiary-fixed/60 bg-tertiary-fixed/10">
+            <div className="flex items-center gap-1.5 mb-2">
+              <span className="material-symbols-outlined text-on-tertiary-fixed-variant" style={{ fontSize: 16 }}>check_circle</span>
+              <p className="text-xs font-label font-bold text-on-tertiary-fixed-variant">OK — 正しい手順</p>
+            </div>
+            <p className="text-xs font-label text-on-surface leading-relaxed">「デプロイ」→<br /><strong>「デプロイを管理」</strong></p>
+            <p className="text-xs font-label text-on-tertiary-fixed-variant mt-1.5">URLそのまま → データ接続を維持</p>
+          </div>
+        </div>
+
+        <Heading>正しい更新手順</Heading>
+        <div className="space-y-1.5">
+          <Step n="01">スプレッドシートのメニュー「拡張機能」→「Apps Script」でGASエディタを開く</Step>
+          <Step n="02">「Code.gs」を選択し、内容を全選択（Ctrl+A）して削除</Step>
+          <Step n="03">FleetMetric Proのセットアップ画面 Step 1 の「コードをコピー」ボタンで最新コードをコピーして貼り付け、保存（Ctrl+S）</Step>
+          <Step n="04">右上「デプロイ」→ <strong>「デプロイを管理」</strong> をクリック（「新しいデプロイ」ではない）</Step>
+          <Step n="05">既存のデプロイの右にある鉛筆アイコン（✏️）をクリック</Step>
+          <Step n="06">「バージョン」ドロップダウンを <strong>「新バージョン」</strong> に変更</Step>
+          <Step n="07">「デプロイ」ボタンをクリック → 完了</Step>
+        </div>
+        <Note type="info">URLは変わりません。アプリ側の再設定は不要です。</Note>
+
+        <Heading>更新後にやること</Heading>
+        <div className="space-y-1.5">
+          <Step n="08">アプリの設定（⚙）→ 「スプレッドシートを初期化」を実行する</Step>
+        </div>
+        <Note type="tip">「スプレッドシートを初期化」はシートのヘッダー行を更新するだけで、入力済みのデータは一切削除されません。</Note>
+      </div>
+    ),
+  },
+  {
     id: 'setup',
     icon: 'link',
     title: 'FleetMetric Proへの接続',

@@ -103,7 +103,7 @@ function getSheet(sheetName) {
 
 function _initSheet(sheet, sheetName) {
   const HEADERS = {
-    '車両マスタ':      ['車両ID','車両名','ナンバー','メーカー','車種','年式','車検期限','法定点検期限','ステータス','備考','登録日'],
+    '車両マスタ':      ['車両ID','車両名','ナンバー','メーカー','車種','年式','車検期限','法定点検期限','ステータス','備考','登録日','アイコン'],
     'メンテナンス記録': ['記録ID','車両ID','車両名','日付','走行距離(km)','作業内容','費用(円)','業者','次回予定日','備考'],
     '事故・修理履歴':   ['記録ID','車両ID','車両名','日付','事故・修理内容','損傷箇所','費用(円)','業者','完了日','備考'],
     '給油記録':        ['記録ID','車両ID','車両名','日付','走行距離(km)','給油量(L)','単価(円/L)','費用(円)','スタンド名','備考']
@@ -121,7 +121,10 @@ function _initSheet(sheet, sheetName) {
 
 function initializeAllSheets() {
   try {
-    ['車両マスタ','メンテナンス記録','事故・修理履歴','給油記録'].forEach(name => getSheet(name));
+    ['車両マスタ','メンテナンス記録','事故・修理履歴','給油記録'].forEach(name => {
+      const sheet = getSheet(name);
+      _initSheet(sheet, name); // 既存シートもヘッダー行を更新
+    });
     return { success: true, message: 'シートを初期化しました' };
   } catch(e) {
     return { success: false, message: e.message };
@@ -157,7 +160,8 @@ function addVehicle(v) {
       v.periodicInspectionDate||v['法定点検期限']||'',
       v.status||v['ステータス']||'稼働中',
       v.notes||v['備考']||'',
-      Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd')
+      Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd'),
+      v['アイコン']||'directions_car'
     ]);
     return { success: true, id };
   } catch(e) { return { success: false, error: e.message }; }
@@ -170,13 +174,14 @@ function updateVehicle(v) {
     const id = v.id||v['車両ID'];
     for (let i = 1; i < data.length; i++) {
       if (String(data[i][0]) === String(id)) {
-        sheet.getRange(i+1,1,1,11).setValues([[
+        sheet.getRange(i+1,1,1,12).setValues([[
           id, v.name||v['車両名'], v.plateNumber||v['ナンバー'],
           v.maker||v['メーカー']||'', v.model||v['車種']||'',
           v.year||v['年式']||'', v.inspectionDate||v['車検期限']||'',
           v.periodicInspectionDate||v['法定点検期限']||'',
           v.status||v['ステータス']||'稼働中',
-          v.notes||v['備考']||'', data[i][10]
+          v.notes||v['備考']||'', data[i][10],
+          v['アイコン']||'directions_car'
         ]]);
         return { success: true };
       }
@@ -329,7 +334,8 @@ function getStatistics() {
     totalMaintCost: allMaintenance.reduce((s,r) => s + (parseFloat(r['費用(円)']) || 0), 0),
     totalAccidentCost: allAccidents.reduce((s,r) => s + (parseFloat(r['費用(円)']) || 0), 0)
   };
-}`;
+}
+`;
 
 type Step = 1 | 2 | 3;
 type TestStatus = 'idle' | 'testing' | 'success' | 'error';
