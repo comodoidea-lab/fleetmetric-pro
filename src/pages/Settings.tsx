@@ -4,7 +4,7 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useStore } from '../store/store';
 import { getGasUrl, clearGasUrl, isSkipAuth, saveGasUrlToFirestore } from '../config';
-import { apiInitSheets, apiBackupNow, apiSetupBackupTrigger } from '../api/gasApi';
+import { apiInitSheets } from '../api/gasApi';
 import { useTheme, THEMES } from '../hooks/useTheme';
 import { DialogModal } from '../components/DialogModal';
 import { ManualModal } from '../components/ManualModal';
@@ -60,7 +60,7 @@ function Row({
 
 export function Settings() {
   const navigate = useNavigate();
-  const { loadAll, vehicles, maintenance, fuel, accidents } = useStore();
+  const { loadAll } = useStore();
   const { theme, setTheme } = useTheme();
   const firebaseUser = auth.currentUser;
   const skipAuth = isSkipAuth();
@@ -69,26 +69,11 @@ export function Settings() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showSetupResetConfirm, setShowSetupResetConfirm] = useState(false);
   const [showInitSuccess, setShowInitSuccess] = useState(false);
-  const [backupResult, setBackupResult] = useState<{ ok: boolean; msg: string } | null>(null);
-  const [backupTriggerResult, setBackupTriggerResult] = useState<{ ok: boolean; msg: string } | null>(null);
 
   async function doLogout() {
     if (!skipAuth) await signOut(auth);
     clearGasUrl();
     window.location.reload();
-  }
-
-  function handleExportJson() {
-    const data = { exportedAt: new Date().toISOString(), vehicles, maintenance, fuel, accidents };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `fleetmetric-${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
   }
 
   return (
@@ -179,38 +164,6 @@ export function Settings() {
         />
       </Section>
 
-      {/* Backup */}
-      <Section title="バックアップ">
-        {!!getGasUrl() && (
-          <Row
-            icon="backup"
-            label="今すぐバックアップ"
-            desc="スプレッドシートのコピーをGoogleドライブに保存"
-            onClick={async () => {
-              const r = await apiBackupNow();
-              setBackupResult({ ok: r.success, msg: r.success ? (r.message ?? '完了') : (r.error ?? '失敗') });
-            }}
-          />
-        )}
-        {!!getGasUrl() && (
-          <Row
-            icon="schedule"
-            label="週次自動バックアップを設定"
-            desc="毎週月曜 午前2時に自動でDriveにコピー"
-            onClick={async () => {
-              const r = await apiSetupBackupTrigger();
-              setBackupTriggerResult({ ok: r.success, msg: r.success ? (r.message ?? '完了') : (r.error ?? '失敗') });
-            }}
-          />
-        )}
-        <Row
-          icon="download"
-          label="JSONでエクスポート"
-          desc="全データをJSONファイルとしてダウンロード"
-          onClick={handleExportJson}
-        />
-      </Section>
-
       {/* Help */}
       <Section title="ヘルプ">
         <Row
@@ -246,22 +199,6 @@ export function Settings() {
           title="完了"
           message="シートを初期化しました"
           onClose={() => setShowInitSuccess(false)}
-        />
-      )}
-      {backupResult && (
-        <DialogModal
-          variant={backupResult.ok ? 'info' : 'danger'}
-          title={backupResult.ok ? 'バックアップ完了' : 'バックアップ失敗'}
-          message={backupResult.msg}
-          onClose={() => setBackupResult(null)}
-        />
-      )}
-      {backupTriggerResult && (
-        <DialogModal
-          variant={backupTriggerResult.ok ? 'info' : 'danger'}
-          title={backupTriggerResult.ok ? '自動バックアップ設定完了' : '設定失敗'}
-          message={backupTriggerResult.msg}
-          onClose={() => setBackupTriggerResult(null)}
         />
       )}
       {showLogoutConfirm && (
