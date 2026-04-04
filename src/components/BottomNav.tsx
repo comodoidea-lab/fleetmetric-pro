@@ -6,6 +6,7 @@ const TABS = [
   { to: '/maintenance', icon: 'build', label: '整備' },
   { to: '/fuel', icon: 'local_gas_station', label: '給油' },
   { to: '/reports', icon: 'bar_chart', label: 'レポート' },
+  { to: '/settings', icon: 'settings', label: '設定' },
 ];
 
 export function BottomNav() {
@@ -31,7 +32,7 @@ export function BottomNav() {
                 >
                   {icon}
                 </span>
-                <span className="text-[10px] font-label font-medium leading-none">{label}</span>
+                <span className="text-[9px] font-label font-medium leading-none">{label}</span>
               </>
             )}
           </NavLink>

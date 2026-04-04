@@ -10,6 +10,7 @@ import { Maintenance } from './pages/Maintenance';
 import { FuelRecords } from './pages/FuelRecords';
 import { Accidents } from './pages/Accidents';
 import { Reports } from './pages/Reports';
+import { Settings } from './pages/Settings';
 import { Setup } from './pages/Setup';
 import { Login } from './pages/Login';
 import { useStore } from './store/store';
@@ -113,6 +114,7 @@ function AppRoutes() {
         <Route path="/fuel" element={<FuelRecords />} />
         <Route path="/accidents" element={<Accidents />} />
         <Route path="/reports" element={<Reports />} />
+        <Route path="/settings" element={<Settings />} />
       </Routes>
     </Layout>
   );
