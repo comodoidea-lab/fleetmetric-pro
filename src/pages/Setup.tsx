@@ -121,7 +121,10 @@ function _initSheet(sheet, sheetName) {
 
 function initializeAllSheets() {
   try {
-    ['車両マスタ','メンテナンス記録','事故・修理履歴','給油記録'].forEach(name => getSheet(name));
+    ['車両マスタ','メンテナンス記録','事故・修理履歴','給油記録'].forEach(name => {
+      const sheet = getSheet(name);
+      _initSheet(sheet, name); // 既存シートもヘッダー行を更新
+    });
     return { success: true, message: 'シートを初期化しました' };
   } catch(e) {
     return { success: false, message: e.message };
