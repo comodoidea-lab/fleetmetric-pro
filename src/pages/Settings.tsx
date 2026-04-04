@@ -8,6 +8,7 @@ import { apiInitSheets } from '../api/gasApi';
 import { useTheme, THEMES } from '../hooks/useTheme';
 import { DialogModal } from '../components/DialogModal';
 import { ManualModal } from '../components/ManualModal';
+import { useGasUpdateContext } from '../context/GasUpdateModalContext';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -61,6 +62,7 @@ function Row({
 export function Settings() {
   const navigate = useNavigate();
   const { loadAll } = useStore();
+  const { openGasUpdateModal, needsGasUpdate, gasUpdateLoading } = useGasUpdateContext();
   const { theme, setTheme } = useTheme();
   const firebaseUser = auth.currentUser;
   const skipAuth = isSkipAuth();
@@ -163,6 +165,24 @@ export function Settings() {
           onClick={() => loadAll()}
         />
       </Section>
+
+      {/* GAS update (when required) */}
+      {!gasUpdateLoading && needsGasUpdate && (
+        <Section title="アップデート">
+          <Row
+            icon="system_update"
+            label="GASスクリプトをアップデート"
+            desc="ダッシュボードのお知らせと同じ手順です（モーダルで表示）"
+            onClick={openGasUpdateModal}
+          />
+          <Row
+            icon="open_in_new"
+            label="アップデート手順を全画面で見る"
+            desc="コードのコピーと詳細手順"
+            onClick={() => navigate('/gas-update')}
+          />
+        </Section>
+      )}
 
       {/* Help */}
       <Section title="ヘルプ">
