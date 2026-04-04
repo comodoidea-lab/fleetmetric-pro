@@ -26,6 +26,16 @@ export const isFirebaseConfigured =
 export const firebaseAuthDomain = firebaseConfig.authDomain ?? '';
 export const firebaseProjectId  = firebaseConfig.projectId  ?? '';
 
-const app  = initializeApp(firebaseConfig);
+// VITE_SKIP_AUTH=true の場合はダミー設定でFirebaseを初期化（開発バイパス用）
+const skipAuth = (env.VITE_SKIP_AUTH as string) === 'true';
+
+const resolvedConfig = (isFirebaseConfigured && !skipAuth) ? firebaseConfig : {
+  apiKey:     'dev-skip-auth-placeholder',
+  authDomain: 'dev-placeholder.firebaseapp.com',
+  projectId:  'dev-placeholder',
+  appId:      '1:000000000000:web:000000000000',
+};
+
+const app  = initializeApp(resolvedConfig);
 export const auth = getAuth(app);
 export const db   = getFirestore(app);

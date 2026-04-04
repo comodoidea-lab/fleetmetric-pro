@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ja"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "error-container": "#ffdad6",
+            "on-tertiary-container": "#4bb278",
+            "error": "#ba1a1a",
+            "tertiary-fixed-dim": "#74db9d",
+            "on-tertiary": "#ffffff",
+            "surface-container": "#ebeef0",
+            "surface": "#f7fafc",
+            "surface-bright": "#f7fafc",
+            "tertiary-container": "#003f23",
+            "surface-container-low": "#f1f4f6",
+            "on-background": "#181c1e",
+            "inverse-on-surface": "#eef1f3",
+            "surface-dim": "#d7dadc",
+            "tertiary": "#002713",
+            "on-secondary-container": "#586377",
+            "on-primary": "#ffffff",
+            "background": "#f7fafc",
+            "primary-fixed": "#d6e3ff",
+            "outline": "#74777f",
+            "on-tertiary-fixed": "#002110",
+            "on-surface-variant": "#43474e",
+            "on-tertiary-fixed-variant": "#00522f",
+            "on-secondary": "#ffffff",
+            "surface-tint": "#455f88",
+            "on-surface": "#181c1e",
+            "on-secondary-fixed-variant": "#3c475a",
+            "secondary": "#545f72",
+            "on-primary-container": "#86a0cd",
+            "secondary-fixed": "#d8e3fa",
+            "on-secondary-fixed": "#111c2c",
+            "inverse-surface": "#2d3133",
+            "on-primary-fixed-variant": "#2d476f",
+            "surface-variant": "#e0e3e5",
+            "secondary-container": "#d5e0f7",
+            "surface-container-high": "#e5e9eb",
+            "on-primary-fixed": "#001b3c",
+            "inverse-primary": "#adc7f7",
+            "primary-container": "#1a365d",
+            "surface-container-lowest": "#ffffff",
+            "primary-fixed-dim": "#adc7f7",
+            "secondary-fixed-dim": "#bcc7dd",
+            "surface-container-highest": "#e0e3e5",
+            "outline-variant": "#c4c6cf",
+            "on-error": "#ffffff",
+            "on-error-container": "#93000a",
+            "tertiary-fixed": "#91f8b8",
+            "primary": "#002045"
+          },
+          fontFamily: {
+            "headline": ["Manrope"],
+            "body": ["Inter"],
+            "label": ["Inter"]
+          },
+          borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    body { font-family: 'Inter', sans-serif; }
+    h1, h2, h3 { font-family: 'Manrope', sans-serif; }
+  </style>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- SideNavBar -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-slate-50 dark:bg-slate-950 flex flex-col py-6 px-4 gap-2 z-40">
+<div class="flex items-center gap-3 px-2 mb-8">
+<div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">analytics</span>
+</div>
+<div>
+<h1 class="text-lg font-black text-blue-900 dark:text-blue-50 leading-none">Fleet Authority</h1>
+<p class="text-[10px] font-bold tracking-widest text-on-secondary-container uppercase mt-1">Command Center</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 transition-all font-manrope text-sm font-semibold" href="#">
+<span class="material-symbols-outlined">dashboard</span> Dashboard
+      </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 transition-all font-manrope text-sm font-semibold" href="#">
+<span class="material-symbols-outlined">directions_car</span> Vehicle List
+      </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 transition-all font-manrope text-sm font-semibold" href="#">
+<span class="material-symbols-outlined">build</span> Maintenance Records
+      </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 transition-all font-manrope text-sm font-semibold" href="#">
+<span class="material-symbols-outlined">local_gas_station</span> Refueling Records
+      </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 transition-all font-manrope text-sm font-semibold" href="#">
+<span class="material-symbols-outlined">report_problem</span> Accident/Repair Logs
+      </a>
+<a class="flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-900 text-blue-900 dark:text-white rounded-lg shadow-sm font-bold font-manrope text-sm tracking-wide" href="#">
+<span class="material-symbols-outlined">bar_chart</span> Reports/Stats
+      </a>
+</nav>
+<div class="mt-auto pt-6 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 transition-all font-manrope text-sm font-semibold" href="#">
+<span class="material-symbols-outlined">settings</span> Settings
+      </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 transition-all font-manrope text-sm font-semibold" href="#">
+<span class="material-symbols-outlined">help</span> Support
+      </a>
+</div>
+<div class="bg-slate-200 dark:bg-slate-800 w-[1px] h-full absolute right-0 top-0"></div>
+</aside>
+<!-- Main Content -->
+<main class="ml-64 min-h-screen">
+<!-- TopNavBar -->
+<header class="fixed top-0 left-64 right-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg shadow-sm">
+<div class="flex justify-between items-center px-8 h-16 w-full">
+<div class="flex items-center gap-4">
+<h2 class="text-xl font-bold tracking-tight text-blue-900">統計・レポート</h2>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative group">
+<span class="material-symbols-outlined text-slate-500 cursor-pointer">notifications</span>
+<span class="absolute -top-1 -right-1 w-2 h-2 bg-error rounded-full"></span>
+</div>
+<div class="flex items-center gap-3 cursor-pointer group">
+<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center overflow-hidden">
+<img alt="Profile" class="w-full h-full object-cover" data-alt="Professional headshot of a fleet manager in a clean corporate office setting, natural lighting, soft focus background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpr2OtAK8mp6kParhbtYCB3FVFA_DKx0F3wMFqFwe39lCGPgGdQ5SappcMJ3Ab4RUjxN8e134NCJlFqEdEi5XM2VOZZoNHoxpoMX6QwjKsmNclpBCONH4T7qlY2v8VUTM8FfK17C0v1ADorDYDvfxwkm035AVw7MIS9a7yPS0mhPyEtNUShL5__2bpIk9qMg1UnBy44Hp7D962Bpbovbi7A8QM_003c6nA63FuJ--EBRY3jQJ7Rzsc91VYhvKwIv13VU0ElzJZYIY"/>
+</div>
+<span class="font-manrope text-sm font-medium text-slate-600 group-hover:text-primary transition-colors">Admin User</span>
+</div>
+</div>
+</div>
+<div class="bg-slate-100 dark:bg-slate-800 h-[1px] w-full"></div>
+</header>
+<!-- Canvas Area -->
+<div class="pt-24 pb-12 px-8 max-w-7xl mx-auto">
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-8">
+<!-- Total Annual Cost Card (Hero) -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-6">
+<div class="bg-primary-container p-8 rounded-xl relative overflow-hidden flex flex-col justify-between h-full min-h-[300px]">
+<div class="relative z-10">
+<span class="text-on-primary-container font-semibold tracking-wider text-xs uppercase mb-2 block">総コスト集計 (2023)</span>
+<h3 class="text-4xl font-extrabold text-white mb-1">¥12,482,000</h3>
+<p class="text-on-primary-container text-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+                前年比 +4.2%
+              </p>
+</div>
+<div class="relative z-10 flex gap-4 mt-8">
+<div class="flex-1 bg-white/10 backdrop-blur-md p-4 rounded-lg">
+<p class="text-white/60 text-[10px] uppercase font-bold mb-1">給油</p>
+<p class="text-white font-bold">¥4.2M</p>
+</div>
+<div class="flex-1 bg-white/10 backdrop-blur-md p-4 rounded-lg">
+<p class="text-white/60 text-[10px] uppercase font-bold mb-1">整備</p>
+<p class="text-white font-bold">¥8.1M</p>
+</div>
+</div>
+<!-- Decorative background element -->
+<div class="absolute -right-12 -bottom-12 w-48 h-48 bg-white/5 rounded-full blur-3xl"></div>
+</div>
+</div>
+<!-- Monthly Refueling Cost Chart -->
+<div class="col-span-12 lg:col-span-8 bg-surface-container-lowest p-8 rounded-xl shadow-sm border-l-4 border-primary">
+<div class="flex justify-between items-end mb-8">
+<div>
+<h3 class="text-lg font-bold text-primary">月別給油費</h3>
+<p class="text-xs text-slate-500 font-medium">過去6ヶ月の推移</p>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 bg-primary-fixed-dim rounded-full"></span>
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Average: ¥680k</span>
+</div>
+</div>
+<div class="flex items-end justify-between h-48 gap-4 px-2">
+<div class="flex flex-col items-center flex-1 gap-3">
+<div class="w-full bg-surface-container-low rounded-t-lg relative group h-[60%]">
+<div class="absolute bottom-0 w-full bg-primary-fixed-dim rounded-t-lg transition-all duration-500 hover:bg-primary" style="height: 100%"></div>
+</div>
+<span class="text-[10px] font-bold text-slate-400">7月</span>
+</div>
+<div class="flex flex-col items-center flex-1 gap-3">
+<div class="w-full bg-surface-container-low rounded-t-lg relative group h-[60%]">
+<div class="absolute bottom-0 w-full bg-primary-fixed-dim rounded-t-lg transition-all duration-500 hover:bg-primary" style="height: 85%"></div>
+</div>
+<span class="text-[10px] font-bold text-slate-400">8月</span>
+</div>
+<div class="flex flex-col items-center flex-1 gap-3">
+<div class="w-full bg-surface-container-low rounded-t-lg relative group h-[60%]">
+<div class="absolute bottom-0 w-full bg-primary-fixed-dim rounded-t-lg transition-all duration-500 hover:bg-primary" style="height: 95%"></div>
+</div>
+<span class="text-[10px] font-bold text-slate-400">9月</span>
+</div>
+<div class="flex flex-col items-center flex-1 gap-3">
+<div class="w-full bg-surface-container-low rounded-t-lg relative group h-[60%]">
+<div class="absolute bottom-0 w-full bg-primary-fixed-dim rounded-t-lg transition-all duration-500 hover:bg-primary" style="height: 70%"></div>
+</div>
+<span class="text-[10px] font-bold text-slate-400">10月</span>
+</div>
+<div class="flex flex-col items-center flex-1 gap-3">
+<div class="w-full bg-surface-container-low rounded-t-lg relative group h-[60%]">
+<div class="absolute bottom-0 w-full bg-primary-fixed-dim rounded-t-lg transition-all duration-500 hover:bg-primary" style="height: 100%"></div>
+</div>
+<span class="text-[10px] font-bold text-slate-400">11月</span>
+</div>
+<div class="flex flex-col items-center flex-1 gap-3">
+<div class="w-full bg-surface-container-low rounded-t-lg relative group h-[60%]">
+<div class="absolute bottom-0 w-full bg-primary rounded-t-lg" style="height: 115%"></div>
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] px-2 py-1 rounded font-bold opacity-0 group-hover:opacity-100 transition-opacity">¥782k</div>
+</div>
+<span class="text-[10px] font-bold text-primary">12月</span>
+</div>
+</div>
+</div>
+<!-- Maintenance Types Breakdown (Pie Chart Style) -->
+<div class="col-span-12 lg:col-span-5 bg-surface-container-lowest p-8 rounded-xl shadow-sm flex flex-col">
+<h3 class="text-lg font-bold text-primary mb-8">整備内訳</h3>
+<div class="flex-1 flex items-center justify-center relative mb-8">
+<!-- Donut Chart Visualization using CSS Conic Gradient -->
+<div class="w-48 h-48 rounded-full border-[16px] border-surface-container-low relative" style="background: conic-gradient(#002045 0% 45%, #86a0cd 45% 75%, #ebeef0 75% 100%)">
+<div class="absolute inset-[-1px] rounded-full border-[20px] border-white"></div>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-2xl font-black text-primary">¥8.1M</span>
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Maintenance</span>
+</div>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="w-3 h-3 rounded-full bg-primary"></span>
+<span class="text-sm font-medium text-slate-600">修理 (Repair)</span>
+</div>
+<span class="text-sm font-bold text-primary">45%</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="w-3 h-3 rounded-full bg-on-primary-container"></span>
+<span class="text-sm font-medium text-slate-600">オイル交換 (Oil)</span>
+</div>
+<span class="text-sm font-bold text-primary">30%</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="w-3 h-3 rounded-full bg-surface-container-highest"></span>
+<span class="text-sm font-medium text-slate-600">定期点検 (Inspection)</span>
+</div>
+<span class="text-sm font-bold text-primary">25%</span>
+</div>
+</div>
+</div>
+<!-- Maintenance Cost Ranking -->
+<div class="col-span-12 lg:col-span-7 bg-surface-container-lowest p-8 rounded-xl shadow-sm">
+<div class="flex justify-between items-center mb-8">
+<h3 class="text-lg font-bold text-primary">車両別コストランキング</h3>
+<button class="text-xs font-bold text-on-primary-container hover:text-primary transition-colors flex items-center gap-1">
+              すべて表示 <span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+<div class="space-y-2">
+<!-- Rank Item 1 -->
+<div class="group flex items-center justify-between p-4 rounded-lg hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-6">
+<span class="text-xl font-black text-primary/20 group-hover:text-primary transition-colors w-6">01</span>
+<div class="w-12 h-12 rounded bg-slate-100 overflow-hidden">
+<img alt="Vehicle" class="w-full h-full object-cover" data-alt="Modern high-end cargo van with professional company branding parked in an industrial zone" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8tWTnaQSVek2kFnSmbNgDJ_caAzyWN87OY894ekvCqH9McVShDeK97ihWyigozOdshHrb7ocF6DIfnQ47C615oDynKwJqPGY93eEt3DTlWStSXX873CbDzTnXAfKBZxC16N1Wokfjz8w-p7gm-hhPbIVyYJ2lv3XVdi4aI1M249porf2nCs_JZYz4wDkF2vYWOfo3IYEXEbNJPEUqPl_6EY-NvPTGuacZ3AO4MAb7KXR1JJnFW4L1lP-yKxi4mygk6k8aE75Agvk"/>
+</div>
+<div>
+<p class="font-bold text-slate-800">Toyota HiAce - 88-21</p>
+<p class="text-xs text-slate-500 font-medium">Last Maint: 2023.11.15</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-black text-primary">¥1,240,000</p>
+<div class="w-32 h-1.5 bg-surface-container rounded-full mt-2 overflow-hidden">
+<div class="h-full bg-error rounded-full" style="width: 85%"></div>
+</div>
+</div>
+</div>
+<!-- Rank Item 2 -->
+<div class="group flex items-center justify-between p-4 rounded-lg hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-6">
+<span class="text-xl font-black text-primary/20 group-hover:text-primary transition-colors w-6">02</span>
+<div class="w-12 h-12 rounded bg-slate-100 overflow-hidden">
+<img alt="Vehicle" class="w-full h-full object-cover" data-alt="Luxury European sedan parked in a modern city plaza at night with ambient lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCNoia6AVVZJLcv6qscn-lLEmQfKZ26DuZvX_Eek9JvKVWCi0vji-nbkus3zxHM5DwKMGFLF2i6mWPRZU3YOmGlGZyVOFOf1e-gvYm1zfG-49L2ly2ZvKMsuGGnd4clrKNT7ycFDeDTqrYEu9ylfEMxyGRcfP0-yrzsWZFAitik5Osa-1LAQ0yxRI_AxU9IHfY7p8doaZVODCrfLM6PaiiWHlliN7x_woW5SK0mrldAQJ0XXuW_dBEFl87grOhhwtp9VIGqDSoHhzw"/>
+</div>
+<div>
+<p class="font-bold text-slate-800">Isuzu Elf - 45-09</p>
+<p class="text-xs text-slate-500 font-medium">Last Maint: 2023.12.01</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-black text-primary">¥980,500</p>
+<div class="w-32 h-1.5 bg-surface-container rounded-full mt-2 overflow-hidden">
+<div class="h-full bg-primary" style="width: 65%"></div>
+</div>
+</div>
+</div>
+<!-- Rank Item 3 -->
+<div class="group flex items-center justify-between p-4 rounded-lg hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-6">
+<span class="text-xl font-black text-primary/20 group-hover:text-primary transition-colors w-6">03</span>
+<div class="w-12 h-12 rounded bg-slate-100 overflow-hidden">
+<img alt="Vehicle" class="w-full h-full object-cover" data-alt="Generic white industrial truck side view in a sunlit logistics hub" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMzpfrsiTIeZI_ZAo9V8-gbWMGxQ443YbpXpcKtgrjBaACJnE3Q80nzkxvVAFx9f_vCqpdrMI5hlvIKqzZbjDMKDnGOmPubAoB43qJ_Polw6VWY8PZOB_SKscBvdHhPMlKzchY0JGacytRIIbgR4xxFhhORXR2jPjr4u_pLs5jHPqogyHR1lfjn309LssUAGo9OQEBA2q3pKaxZEgai5jV4PruENbrQl6VPPTJ09JDQR6DYX2Udm7kkEjChKRv92E5JEfdA5YeHD4"/>
+</div>
+<div>
+<p class="font-bold text-slate-800">Nissan NV350 - 12-77</p>
+<p class="text-xs text-slate-500 font-medium">Last Maint: 2023.10.22</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-black text-primary">¥720,000</p>
+<div class="w-32 h-1.5 bg-surface-container rounded-full mt-2 overflow-hidden">
+<div class="h-full bg-primary" style="width: 45%"></div>
+</div>
+</div>
+</div>
+<!-- Rank Item 4 -->
+<div class="group flex items-center justify-between p-4 rounded-lg hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-6">
+<span class="text-xl font-black text-primary/20 group-hover:text-primary transition-colors w-6">04</span>
+<div class="w-12 h-12 rounded bg-slate-100 overflow-hidden">
+<img alt="Vehicle" class="w-full h-full object-cover" data-alt="Rear view of a heavy duty fleet vehicle in a parking lot with blue sky" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8VEAN4_R2SA1P3ZDq8s4FzqKRC5pZO7KrLzdqVWQJgELVUWkOx5AWIPLE2unMHAmAAb07t1cdcWy5cyisKjXz3iT-Hb75jUjDI75TXFy33TUaWEhv6zxF-FoIuAQGsLgmKZZYjxKFFqx-Nnsc-KOKZfoGrnibaR0yCzIUzpPCFqCpjuJIC6sEMmpAJm3z7Wt6xmLkZme0E2D-5Qqkf9A-m37iF6TTE4LS6W33LpbRGu1P0b_FK4KzPzFukvrwklMG-vB5vI-rGXo"/>
+</div>
+<div>
+<p class="font-bold text-slate-800">Honda N-Van - 33-12</p>
+<p class="text-xs text-slate-500 font-medium">Last Maint: 2023.11.02</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-black text-primary">¥450,200</p>
+<div class="w-32 h-1.5 bg-surface-container rounded-full mt-2 overflow-hidden">
+<div class="h-full bg-primary" style="width: 30%"></div>
+</div>
+</div>
+</div>
+<!-- Rank Item 5 -->
+<div class="group flex items-center justify-between p-4 rounded-lg hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-6">
+<span class="text-xl font-black text-primary/20 group-hover:text-primary transition-colors w-6">05</span>
+<div class="w-12 h-12 rounded bg-slate-100 overflow-hidden">
+<img alt="Vehicle" class="w-full h-full object-cover" data-alt="Professional logistics car with branding in motion on a bridge" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUIh6npG9UA-_0aFyFO0xPmMHzjuGNJMb2GRFlWg64BNKb1sOUVK3FBa6MTdLJYboQQaOXqDFO4-z_4ikizXv4RrQilW33DFExb9mRiSIh48wIpaXAKJ92f8Tsz38a1qp3oJ2H9cSE2eZw9yHt7jwS1prBWLBvZqn_Nmk_EbKL8M-7x_JW3Zm8qYa5Yg2zSW7rJcnB0j5FlW8RWlCR4Nt7Il6ftF8Qvnq3axlAAWa-JQD0ZGKiEUq6T47lfT8RguwtUXSXItgso70"/>
+</div>
+<div>
+<p class="font-bold text-slate-800">Toyota Probox - 66-90</p>
+<p class="text-xs text-slate-500 font-medium">Last Maint: 2023.09.18</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-black text-primary">¥210,000</p>
+<div class="w-32 h-1.5 bg-surface-container rounded-full mt-2 overflow-hidden">
+<div class="h-full bg-primary" style="width: 15%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Mobile Navigation (BottomNavBar) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-slate-100 flex justify-around py-3 px-4 z-50">
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px] font-bold">Dash</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">directions_car</span>
+<span class="text-[10px] font-bold">List</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">bar_chart</span>
+<span class="text-[10px] font-bold">Stats</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-bold">Settings</span>
+</a>
+</nav>
+</body></html>

@@ -6,6 +6,7 @@ import { MaintenanceForm } from '../components/forms/MaintenanceForm';
 import { FuelForm } from '../components/forms/FuelForm';
 import { AccidentForm } from '../components/forms/AccidentForm';
 import { VehicleForm } from '../components/forms/VehicleForm';
+import { DialogModal } from '../components/DialogModal';
 
 type Tab = 'info' | 'maintenance' | 'fuel' | 'accidents';
 
@@ -24,6 +25,10 @@ export function VehicleDetail() {
   const [showFuelForm, setShowFuelForm] = useState(false);
   const [showAccidentForm, setShowAccidentForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
+  const [deleteVehicleConfirm, setDeleteVehicleConfirm] = useState(false);
+  const [deleteMaintId, setDeleteMaintId] = useState<string | null>(null);
+  const [deleteFuelId, setDeleteFuelId] = useState<string | null>(null);
+  const [deleteAccidentId, setDeleteAccidentId] = useState<string | null>(null);
 
   if (!vehicle) {
     return (
@@ -181,12 +186,7 @@ export function VehicleDetail() {
                   <span className="material-symbols-outlined" style={{ fontSize: 16 }}>edit</span>編集
                 </button>
                 <button
-                  onClick={async () => {
-                    if (confirm(`${vehicle['車両名']} を削除しますか？`)) {
-                      await deleteVehicle(vehicle['車両ID']);
-                      navigate('/vehicles');
-                    }
-                  }}
+                  onClick={() => setDeleteVehicleConfirm(true)}
                   className="flex items-center gap-2 px-4 py-2.5 bg-error-container text-on-error-container rounded-full text-sm font-semibold hover:bg-error/20 transition-colors"
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>削除
@@ -223,7 +223,7 @@ export function VehicleDetail() {
                     </div>
                     <div className="text-right flex-shrink-0">
                       {r['費用(円)'] && <p className="text-sm font-bold text-on-surface">¥{Number(r['費用(円)']).toLocaleString()}</p>}
-                      <button onClick={() => deleteMaintenance(r['記録ID'])} className="text-error hover:underline text-xs mt-1">削除</button>
+                      <button onClick={() => setDeleteMaintId(r['記録ID'])} className="text-error hover:underline text-xs mt-1">削除</button>
                     </div>
                   </div>
                 )}
@@ -258,7 +258,7 @@ export function VehicleDetail() {
                     </div>
                     <div className="text-right flex-shrink-0">
                       {r['費用(円)'] && <p className="text-sm font-bold text-on-surface">¥{Number(r['費用(円)']).toLocaleString()}</p>}
-                      <button onClick={() => deleteFuel(r['記録ID'])} className="text-error hover:underline text-xs mt-1">削除</button>
+                      <button onClick={() => setDeleteFuelId(r['記録ID'])} className="text-error hover:underline text-xs mt-1">削除</button>
                     </div>
                   </div>
                 )}
@@ -293,7 +293,7 @@ export function VehicleDetail() {
                     </div>
                     <div className="text-right flex-shrink-0">
                       {r['費用(円)'] && <p className="text-sm font-bold text-on-surface">¥{Number(r['費用(円)']).toLocaleString()}</p>}
-                      <button onClick={() => deleteAccident(r['記録ID'])} className="text-error hover:underline text-xs mt-1">削除</button>
+                      <button onClick={() => setDeleteAccidentId(r['記録ID'])} className="text-error hover:underline text-xs mt-1">削除</button>
                     </div>
                   </div>
                 )}
@@ -307,6 +307,50 @@ export function VehicleDetail() {
       {showFuelForm && <FuelForm vehicleId={id} onClose={() => setShowFuelForm(false)} />}
       {showAccidentForm && <AccidentForm vehicleId={id} onClose={() => setShowAccidentForm(false)} />}
       {showEditForm && <VehicleForm vehicle={vehicle} onClose={() => setShowEditForm(false)} />}
+
+      {deleteVehicleConfirm && (
+        <DialogModal
+          variant="danger"
+          title="車両を削除"
+          message={`「${vehicle['車両名']}」を削除しますか？\nこの操作は取り消せません。`}
+          confirmLabel="削除する"
+          onConfirm={async () => {
+            await deleteVehicle(vehicle['車両ID']);
+            navigate('/vehicles');
+          }}
+          onClose={() => setDeleteVehicleConfirm(false)}
+        />
+      )}
+      {deleteMaintId && (
+        <DialogModal
+          variant="danger"
+          title="記録を削除"
+          message="このメンテナンス記録を削除しますか？"
+          confirmLabel="削除する"
+          onConfirm={() => deleteMaintenance(deleteMaintId)}
+          onClose={() => setDeleteMaintId(null)}
+        />
+      )}
+      {deleteFuelId && (
+        <DialogModal
+          variant="danger"
+          title="記録を削除"
+          message="この給油記録を削除しますか？"
+          confirmLabel="削除する"
+          onConfirm={() => deleteFuel(deleteFuelId)}
+          onClose={() => setDeleteFuelId(null)}
+        />
+      )}
+      {deleteAccidentId && (
+        <DialogModal
+          variant="danger"
+          title="記録を削除"
+          message="この事故・修理記録を削除しますか？"
+          confirmLabel="削除する"
+          onConfirm={() => deleteAccident(deleteAccidentId)}
+          onClose={() => setDeleteAccidentId(null)}
+        />
+      )}
     </div>
   );
 }

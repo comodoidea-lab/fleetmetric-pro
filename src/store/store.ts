@@ -152,6 +152,7 @@ export const useStore = create<AppState>((set, get) => ({
     try {
       const { id } = await apiAddVehicle(v);
       set(s => ({ vehicles: s.vehicles.map(x => x['車両ID'] === tmpId ? { ...optimistic, '車両ID': id } : x) }));
+      cacheSet('vehicles', get().vehicles);
       get().refreshDashboard().catch(console.error);
     } catch {
       set(s => ({ vehicles: s.vehicles.filter(x => x['車両ID'] !== tmpId) }));
@@ -176,6 +177,7 @@ export const useStore = create<AppState>((set, get) => ({
     set(s => ({ vehicles: s.vehicles.filter(x => x['車両ID'] !== id) }));
     try {
       await apiDeleteVehicle(id);
+      cacheSet('vehicles', get().vehicles);
       get().refreshDashboard().catch(console.error);
     } catch {
       set({ vehicles: prev });
@@ -191,7 +193,9 @@ export const useStore = create<AppState>((set, get) => ({
     try {
       const { id } = await apiAddMaintenance(r);
       set(s => ({ maintenance: s.maintenance.map(x => x['記録ID'] === tmpId ? { ...optimistic, '記録ID': id } : x) }));
+      cacheSet('maintenance', get().maintenance);
       get().refreshDashboard().catch(console.error);
+      get().refreshMaintenance().catch(console.error);
     } catch {
       set(s => ({ maintenance: s.maintenance.filter(x => x['記録ID'] !== tmpId) }));
       throw new Error('メンテナンス記録の追加に失敗しました');
@@ -203,6 +207,7 @@ export const useStore = create<AppState>((set, get) => ({
     set(s => ({ maintenance: s.maintenance.filter(x => x['記録ID'] !== id) }));
     try {
       await apiDeleteMaintenance(id);
+      cacheSet('maintenance', get().maintenance);
     } catch {
       set({ maintenance: prev });
       throw new Error('メンテナンス記録の削除に失敗しました');
@@ -217,6 +222,7 @@ export const useStore = create<AppState>((set, get) => ({
     try {
       const { id } = await apiAddFuel(r);
       set(s => ({ fuel: s.fuel.map(x => x['記録ID'] === tmpId ? { ...optimistic, '記録ID': id } : x) }));
+      cacheSet('fuel', get().fuel);
     } catch {
       set(s => ({ fuel: s.fuel.filter(x => x['記録ID'] !== tmpId) }));
       throw new Error('給油記録の追加に失敗しました');
@@ -228,6 +234,7 @@ export const useStore = create<AppState>((set, get) => ({
     set(s => ({ fuel: s.fuel.filter(x => x['記録ID'] !== id) }));
     try {
       await apiDeleteFuel(id);
+      cacheSet('fuel', get().fuel);
     } catch {
       set({ fuel: prev });
       throw new Error('給油記録の削除に失敗しました');
@@ -242,6 +249,7 @@ export const useStore = create<AppState>((set, get) => ({
     try {
       const { id } = await apiAddAccident(r);
       set(s => ({ accidents: s.accidents.map(x => x['記録ID'] === tmpId ? { ...optimistic, '記録ID': id } : x) }));
+      cacheSet('accidents', get().accidents);
     } catch {
       set(s => ({ accidents: s.accidents.filter(x => x['記録ID'] !== tmpId) }));
       throw new Error('事故・修理記録の追加に失敗しました');
@@ -253,6 +261,7 @@ export const useStore = create<AppState>((set, get) => ({
     set(s => ({ accidents: s.accidents.filter(x => x['記録ID'] !== id) }));
     try {
       await apiDeleteAccident(id);
+      cacheSet('accidents', get().accidents);
     } catch {
       set({ accidents: prev });
       throw new Error('事故・修理記録の削除に失敗しました');

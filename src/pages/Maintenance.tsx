@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useStore } from '../store/store';
 import { MaintenanceForm } from '../components/forms/MaintenanceForm';
+import { DialogModal } from '../components/DialogModal';
 
 export function Maintenance() {
   const { maintenance, vehicles, deleteMaintenance } = useStore();
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const sorted = [...maintenance]
     .sort((a, b) => new Date(b['日付']).getTime() - new Date(a['日付']).getTime())
@@ -50,14 +52,16 @@ export function Maintenance() {
           </div>
         ) : (
           <div className="divide-y divide-outline-variant/10">
-            {sorted.map(r => (
+            {sorted.map(r => {
+              const vehicleName = r['車両名'] || vehicles.find(v => v['車両ID'] === r['車両ID'])?.['車両名'] || '—';
+              return (
               <div key={r['記録ID']} className="flex items-center gap-4 px-5 py-4 hover:bg-surface-container transition-colors">
                 <div className="w-9 h-9 rounded-full bg-secondary-container flex items-center justify-center flex-shrink-0">
                   <span className="material-symbols-outlined text-on-secondary-container" style={{ fontSize: 18 }}>build</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-sm font-headline font-bold text-on-surface">{r['車両名']}</p>
+                    <p className="text-sm font-headline font-bold text-on-surface">{vehicleName}</p>
                     <span className="text-xs px-2 py-0.5 rounded bg-secondary-container text-on-secondary-fixed font-label font-medium">{r['作業内容']}</span>
                   </div>
                   <p className="text-xs text-on-surface-variant mt-0.5">
@@ -74,17 +78,28 @@ export function Maintenance() {
                     <p className="text-sm font-bold text-on-surface">¥{Number(r['費用(円)']).toLocaleString()}</p>
                   )}
                   <button
-                    onClick={() => { if (confirm('削除しますか？')) deleteMaintenance(r['記録ID']); }}
+                    onClick={() => setDeleteId(r['記録ID'])}
                     className="text-xs text-error hover:underline"
                   >削除</button>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
 
       {showForm && <MaintenanceForm onClose={() => setShowForm(false)} />}
+      {deleteId && (
+        <DialogModal
+          variant="danger"
+          title="記録を削除"
+          message="このメンテナンス記録を削除しますか？"
+          confirmLabel="削除する"
+          onConfirm={() => deleteMaintenance(deleteId)}
+          onClose={() => setDeleteId(null)}
+        />
+      )}
     </div>
   );
 }

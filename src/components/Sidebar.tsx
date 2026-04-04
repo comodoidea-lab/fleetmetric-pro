@@ -3,6 +3,7 @@ import { getGasUrl, clearGasUrl } from '../config';
 import { useStore } from '../store/store';
 import { apiInitSheets } from '../api/gasApi';
 import { useState } from 'react';
+import { DialogModal } from './DialogModal';
 
 const NAV_ITEMS = [
   { to: '/', icon: 'dashboard', label: 'ダッシュボード', fillActive: true },
@@ -16,6 +17,8 @@ const NAV_ITEMS = [
 export function Sidebar() {
   const { loadAll } = useStore();
   const [showSettings, setShowSettings] = useState(false);
+  const [showInitSuccess, setShowInitSuccess] = useState(false);
+  const [showSetupResetConfirm, setShowSetupResetConfirm] = useState(false);
 
   return (
     <aside className="hidden lg:flex flex-col py-6 px-4 gap-2 h-screen w-64 fixed left-0 top-16 bg-surface-container-low z-40 overflow-y-auto">
@@ -85,7 +88,7 @@ export function Sidebar() {
                   </div>
                   {!!getGasUrl() && (
                     <button
-                      onClick={async () => { await apiInitSheets(); setShowSettings(false); alert('シートを初期化しました'); }}
+                      onClick={async () => { await apiInitSheets(); setShowSettings(false); setShowInitSuccess(true); }}
                       className="flex items-center gap-2 w-full px-3 py-2.5 text-sm hover:bg-surface-container transition-colors text-on-surface rounded-lg text-left"
                     >
                       <span className="material-symbols-outlined text-primary" style={{ fontSize: 16 }}>table_chart</span>
@@ -101,12 +104,7 @@ export function Sidebar() {
                   </button>
                   <div className="border-t border-outline-variant/20 my-1" />
                   <button
-                    onClick={() => {
-                      if (confirm('セットアップをやり直しますか？')) {
-                        clearGasUrl();
-                        window.location.reload();
-                      }
-                    }}
+                    onClick={() => { setShowSettings(false); setShowSetupResetConfirm(true); }}
                     className="flex items-center gap-2 w-full px-3 py-2.5 text-sm hover:bg-error-container/30 transition-colors text-error rounded-lg text-left"
                   >
                     <span className="material-symbols-outlined" style={{ fontSize: 16 }}>settings_backup_restore</span>
@@ -122,6 +120,25 @@ export function Sidebar() {
           <span className="font-label text-sm font-semibold">ヘルプ</span>
         </a>
       </div>
+
+      {showInitSuccess && (
+        <DialogModal
+          variant="info"
+          title="完了"
+          message="シートを初期化しました"
+          onClose={() => setShowInitSuccess(false)}
+        />
+      )}
+      {showSetupResetConfirm && (
+        <DialogModal
+          variant="danger"
+          title="セットアップをやり直す"
+          message={'現在の接続設定がリセットされます。\nよろしいですか？'}
+          confirmLabel="リセットする"
+          onConfirm={() => { clearGasUrl(); window.location.reload(); }}
+          onClose={() => setShowSetupResetConfirm(false)}
+        />
+      )}
     </aside>
   );
 }

@@ -14,6 +14,7 @@ export interface Vehicle {
   'ステータス': '稼働中' | '整備中' | '廃車';
   '備考': string;
   '登録日': string;
+  'アイコン'?: string;
 }
 
 export interface MaintenanceRecord {

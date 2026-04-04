@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useStore } from '../store/store';
 import { AccidentForm } from '../components/forms/AccidentForm';
+import { DialogModal } from '../components/DialogModal';
 
 export function Accidents() {
   const { accidents, deleteAccident } = useStore();
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const sorted = [...accidents]
     .sort((a, b) => new Date(b['日付']).getTime() - new Date(a['日付']).getTime())
@@ -67,7 +69,7 @@ export function Accidents() {
                 <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
                   {r['費用(円)'] && <p className="text-sm font-bold text-on-surface">¥{Number(r['費用(円)']).toLocaleString()}</p>}
                   <button
-                    onClick={() => { if (confirm('削除しますか？')) deleteAccident(r['記録ID']); }}
+                    onClick={() => setDeleteId(r['記録ID'])}
                     className="text-xs text-error hover:underline"
                   >削除</button>
                 </div>
@@ -78,6 +80,16 @@ export function Accidents() {
       </div>
 
       {showForm && <AccidentForm onClose={() => setShowForm(false)} />}
+      {deleteId && (
+        <DialogModal
+          variant="danger"
+          title="記録を削除"
+          message="この事故・修理記録を削除しますか？"
+          confirmLabel="削除する"
+          onConfirm={() => deleteAccident(deleteId)}
+          onClose={() => setDeleteId(null)}
+        />
+      )}
     </div>
   );
 }

@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ORBITAL_FLEET Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed-dim": "#bec6e0",
+                    "secondary-fixed": "#dae2fd",
+                    "on-primary-container": "#008abb",
+                    "on-tertiary": "#3e2d11",
+                    "surface-tint": "#7bd0ff",
+                    "surface-bright": "#31394d",
+                    "on-tertiary-container": "#957d5a",
+                    "secondary": "#bec6e0",
+                    "surface-variant": "#2d3449",
+                    "primary": "#7bd0ff",
+                    "on-primary-fixed": "#001e2c",
+                    "on-error": "#690005",
+                    "on-secondary": "#283044",
+                    "inverse-surface": "#dae2fd",
+                    "on-secondary-fixed": "#131b2e",
+                    "on-surface": "#dae2fd",
+                    "primary-container": "#001a27",
+                    "error": "#ffb4ab",
+                    "inverse-on-surface": "#283044",
+                    "on-secondary-container": "#adb4ce",
+                    "on-secondary-fixed-variant": "#3f465c",
+                    "surface-container-lowest": "#060e20",
+                    "surface": "#0b1326",
+                    "primary-fixed": "#c4e7ff",
+                    "primary-fixed-dim": "#7bd0ff",
+                    "outline": "#909097",
+                    "on-background": "#dae2fd",
+                    "on-tertiary-fixed-variant": "#574425",
+                    "on-primary": "#00354a",
+                    "surface-container": "#171f33",
+                    "error-container": "#93000a",
+                    "tertiary-fixed": "#fcdeb5",
+                    "tertiary-fixed-dim": "#dec29a",
+                    "tertiary-container": "#231500",
+                    "surface-container-low": "#131b2e",
+                    "surface-dim": "#0b1326",
+                    "background": "#0b1326",
+                    "secondary-container": "#3f465c",
+                    "outline-variant": "#45464d",
+                    "on-error-container": "#ffdad6",
+                    "on-primary-fixed-variant": "#004c69",
+                    "on-tertiary-fixed": "#271901",
+                    "inverse-primary": "#00668a",
+                    "surface-container-high": "#222a3d",
+                    "tertiary": "#dec29a",
+                    "surface-container-highest": "#2d3449",
+                    "on-surface-variant": "#c6c6cd"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Space Grotesk"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(23, 31, 51, 0.7);
+            backdrop-filter: blur(12px);
+        }
+        body {
+            background-color: #0b1326;
+            color: #dae2fd;
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+<!-- SideNavBar Shell -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-slate-950 flex flex-col h-full py-6 z-[60] hidden md:flex">
+<div class="px-6 mb-10">
+<h1 class="text-xl font-['Space_Grotesk'] text-sky-500 font-bold tracking-tighter">Fleet_Ops</h1>
+<p class="text-[10px] font-['Inter'] text-slate-500 uppercase tracking-[0.2em]">Sector_7_Active</p>
+</div>
+<nav class="flex-1 space-y-1">
+<!-- Command (Active) -->
+<a class="flex items-center px-6 py-3 text-sky-400 border-r-2 border-sky-400 bg-gradient-to-r from-sky-500/10 to-transparent font-['Inter'] text-sm tracking-wide uppercase font-semibold ease-out duration-300 transition-all" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="dashboard">dashboard</span>
+                Command
+            </a>
+<a class="flex items-center px-6 py-3 text-slate-500 font-['Inter'] text-sm tracking-wide uppercase font-semibold hover:bg-slate-900 hover:text-slate-200 ease-out duration-300 transition-all" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="explore">explore</span>
+                Live_Grid
+            </a>
+<a class="flex items-center px-6 py-3 text-slate-500 font-['Inter'] text-sm tracking-wide uppercase font-semibold hover:bg-slate-900 hover:text-slate-200 ease-out duration-300 transition-all" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="local_shipping">local_shipping</span>
+                Logistics
+            </a>
+<a class="flex items-center px-6 py-3 text-slate-500 font-['Inter'] text-sm tracking-wide uppercase font-semibold hover:bg-slate-900 hover:text-slate-200 ease-out duration-300 transition-all" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="build">build</span>
+                Maintenance
+            </a>
+<a class="flex items-center px-6 py-3 text-slate-500 font-['Inter'] text-sm tracking-wide uppercase font-semibold hover:bg-slate-900 hover:text-slate-200 ease-out duration-300 transition-all" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="sensors">sensors</span>
+                Telematics
+            </a>
+</nav>
+<div class="px-6 mt-auto space-y-1">
+<a class="flex items-center py-3 text-slate-500 font-['Inter'] text-sm tracking-wide uppercase font-semibold hover:text-slate-200 transition-colors" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="help">help</span>
+                Support
+            </a>
+<a class="flex items-center py-3 text-slate-500 font-['Inter'] text-sm tracking-wide uppercase font-semibold hover:text-slate-200 transition-colors" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="logout">logout</span>
+                Logout
+            </a>
+</div>
+</aside>
+<!-- TopNavBar Shell -->
+<header class="w-full top-0 sticky flex justify-between items-center h-16 px-8 w-full z-50 bg-slate-900/80 backdrop-blur-xl shadow-[0_0_20px_rgba(56,189,248,0.05)] md:pl-72">
+<div class="flex items-center gap-6">
+<span class="text-2xl font-bold tracking-tighter text-sky-400 font-['Space_Grotesk']">ORBITAL_FLEET</span>
+<div class="relative hidden lg:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm" data-icon="search">search</span>
+<input class="bg-surface-container-lowest border-none rounded-lg pl-10 pr-4 py-1.5 text-sm w-64 focus:ring-1 focus:ring-sky-400 transition-all" placeholder="Search fleet registry..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-slate-400 hover:text-sky-300 active:scale-95 transition-all">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-slate-400 hover:text-sky-300 active:scale-95 transition-all">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<button class="bg-gradient-to-br from-[#7bd0ff] to-[#008abb] text-on-primary-fixed font-bold px-5 py-1.5 rounded-md text-sm active:scale-95 transition-transform">
+                Deploy
+            </button>
+<div class="h-8 w-8 rounded-full overflow-hidden border border-sky-400/30">
+<img class="w-full h-full object-cover" data-alt="Portrait of a professional fleet commander with a serious expression and cinematic blue lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCb7LrHzcM49Ybwy9WP5X05K64vo8e9TD2EyLLcaHpBhvBccWC0pJVRAOzQSh8rNTmZ_IYlkP7g2OZg64-iF1WZKphH6b-tDPPsYalgSlNYWDV5SbIc5-pcXctdX9Ev1fMErm0qixQN5VNoTZRWwHTz9Txu9AyDhGPOKLwkSWiToSLzWsm0jMlBOqIeVAAa1Ma61yjpm0YkqjSxV0iZKyChP-ao7ZWpB4Ht730VDi5KCk_6ToaNmSfe9yudHX8lpN5-C5evvvHN8Cw"/>
+</div>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="md:ml-64 p-8 min-h-screen bg-surface">
+<!-- Hero Metrics Asymmetric Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-12">
+<div class="md:col-span-8 relative overflow-hidden rounded-xl bg-surface-container p-8 border-l-4 border-sky-400">
+<div class="absolute -right-10 -bottom-10 opacity-5">
+<span class="material-symbols-outlined text-[200px]" data-icon="rocket_launch">rocket_launch</span>
+</div>
+<div class="relative z-10">
+<p class="text-sky-400 font-label text-xs uppercase tracking-widest mb-2 font-bold">Active Fleet Efficiency</p>
+<h2 class="font-headline text-5xl font-bold tracking-tighter text-on-surface mb-4">98.2<span class="text-sky-400/50">%</span></h2>
+<div class="flex gap-8">
+<div>
+<p class="text-slate-500 text-xs font-label uppercase mb-1">Operational</p>
+<p class="font-headline text-xl font-semibold">1,240 Units</p>
+</div>
+<div>
+<p class="text-slate-500 text-xs font-label uppercase mb-1">In Transit</p>
+<p class="font-headline text-xl font-semibold">842 Units</p>
+</div>
+<div>
+<p class="text-slate-500 text-xs font-label uppercase mb-1">Average Latency</p>
+<p class="font-headline text-xl font-semibold text-sky-400">12ms</p>
+</div>
+</div>
+</div>
+</div>
+<div class="md:col-span-4 rounded-xl bg-gradient-to-br from-surface-container-high to-surface-container p-8 flex flex-col justify-between relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-20">
+<span class="material-symbols-outlined text-4xl text-sky-400" data-icon="account_balance_wallet">account_balance_wallet</span>
+</div>
+<div>
+<p class="text-slate-500 text-xs font-label uppercase tracking-widest mb-2">Fuel Cost Index</p>
+<h3 class="font-headline text-4xl font-bold tracking-tighter">$42,904.00</h3>
+</div>
+<div class="mt-4 flex items-center gap-2 text-error text-sm font-semibold">
+<span class="material-symbols-outlined text-sm" data-icon="trending_up">trending_up</span>
+<span>+12.4% vs Last Period</span>
+</div>
+</div>
+</div>
+<!-- Bento Grid Main Content -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Maintenance Alerts Panel -->
+<div class="md:col-span-2 space-y-6">
+<div class="bg-surface-container-low rounded-xl p-1">
+<div class="bg-surface-container p-6 rounded-lg">
+<div class="flex justify-between items-center mb-6">
+<h4 class="font-headline text-lg font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-sky-400" data-icon="warning">warning</span>
+                                Maintenance Alerts
+                            </h4>
+<span class="bg-error-container text-error text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-tighter">4 Urgent</span>
+</div>
+<div class="space-y-4">
+<!-- Alert Item -->
+<div class="flex items-center justify-between p-4 bg-surface-container-high rounded-lg hover:bg-surface-container-highest transition-colors cursor-pointer group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded bg-slate-900 flex items-center justify-center border border-sky-400/20">
+<span class="material-symbols-outlined text-sky-400" data-icon="minor_crash">minor_crash</span>
+</div>
+<div>
+<p class="font-semibold text-sm">Unit #772-B (Logistics)</p>
+<p class="text-xs text-slate-500">Hydraulic Pressure Variance Detected</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-xs font-bold text-error uppercase">Critical</p>
+<p class="text-[10px] text-slate-500">2 mins ago</p>
+</div>
+</div>
+<!-- Alert Item -->
+<div class="flex items-center justify-between p-4 bg-surface-container-high rounded-lg hover:bg-surface-container-highest transition-colors cursor-pointer group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded bg-slate-900 flex items-center justify-center border border-sky-400/20">
+<span class="material-symbols-outlined text-slate-400" data-icon="oil_barrel">oil_barrel</span>
+</div>
+<div>
+<p class="font-semibold text-sm">Fleet Maintenance Cluster 4</p>
+<p class="text-xs text-slate-500">Scheduled Lube Cycle Overdue</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-xs font-bold text-tertiary uppercase">Warning</p>
+<p class="text-[10px] text-slate-500">1 hour ago</p>
+</div>
+</div>
+<!-- Alert Item -->
+<div class="flex items-center justify-between p-4 bg-surface-container-high rounded-lg hover:bg-surface-container-highest transition-colors cursor-pointer group">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded bg-slate-900 flex items-center justify-center border border-sky-400/20">
+<span class="material-symbols-outlined text-slate-400" data-icon="tire_repair">tire_repair</span>
+</div>
+<div>
+<p class="font-semibold text-sm">Unit #109-A (Cargo)</p>
+<p class="text-xs text-slate-500">Tire Pressure Low - Front Right</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-xs font-bold text-slate-500 uppercase">Routine</p>
+<p class="text-[10px] text-slate-500">3 hours ago</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Live Map Section -->
+<div class="h-64 rounded-xl relative overflow-hidden bg-slate-900">
+<img class="w-full h-full object-cover opacity-60" data-alt="Stylized blue dark mode digital map with glowing geometric grid lines and vehicle trajectory markers" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAsd219wpY4Gh_fZ1vQB6YTT7xYJceMESFpVNQre88NT2z9uENjxWNgHN5nSgbnbcbvA2fbsKqjYBSGKFCH-7LRg3qvxPjhwOz7jOvH4Ohjr-R2i3o8WC2rPxCIzUAEs0HtLZ49Ste1KsKVgvMCxEOw8ROEPsI-ZG5xflTRCrNozIBU97hOD72A1W2bw18T6O0Ic0TCPnl1Bfru1VwPCV-XG2D5gNS_tsrSkfd3XJs6x-Ptbv7MNJPTPWWMzqxe_qZGkAPUNrtP0z8"/>
+<div class="absolute inset-0 bg-gradient-to-t from-slate-950 to-transparent"></div>
+<div class="absolute bottom-4 left-6">
+<div class="flex items-center gap-3">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border-2 border-slate-900 bg-sky-400"></div>
+<div class="w-6 h-6 rounded-full border-2 border-slate-900 bg-sky-600"></div>
+<div class="w-6 h-6 rounded-full border-2 border-slate-900 bg-slate-700"></div>
+</div>
+<p class="text-xs font-semibold">12 vehicles active in <span class="text-sky-400">Sector 7</span></p>
+</div>
+</div>
+<div class="absolute top-4 right-4 bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded text-[10px] font-bold uppercase tracking-widest border border-sky-400/30">
+                        Live Feed
+                    </div>
+</div>
+</div>
+<!-- Recent Records & Stats Panel -->
+<div class="md:col-span-1 space-y-6">
+<div class="bg-surface-container rounded-xl p-6 h-full border-t border-sky-400/10">
+<h4 class="font-headline text-lg font-bold mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-sky-400" data-icon="history">history</span>
+                        Recent Activity
+                    </h4>
+<div class="space-y-6 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-800">
+<!-- Record -->
+<div class="relative pl-8">
+<div class="absolute left-0 top-1 w-[24px] h-[24px] rounded-full bg-surface-container flex items-center justify-center border-2 border-sky-400 z-10">
+<div class="w-2 h-2 rounded-full bg-sky-400"></div>
+</div>
+<div>
+<p class="text-sm font-bold">Refuel Confirmed</p>
+<p class="text-xs text-slate-500">Unit #442-D • $312.00</p>
+<p class="text-[10px] text-sky-400/60 mt-1 uppercase font-bold tracking-tighter">09:45 AM</p>
+</div>
+</div>
+<!-- Record -->
+<div class="relative pl-8">
+<div class="absolute left-0 top-1 w-[24px] h-[24px] rounded-full bg-surface-container flex items-center justify-center border-2 border-slate-800 z-10">
+<div class="w-2 h-2 rounded-full bg-slate-800"></div>
+</div>
+<div>
+<p class="text-sm font-bold">Route Optimization</p>
+<p class="text-xs text-slate-500">Cluster 9 recalculated</p>
+<p class="text-[10px] text-slate-500 mt-1 uppercase font-bold tracking-tighter">08:20 AM</p>
+</div>
+</div>
+<!-- Record -->
+<div class="relative pl-8">
+<div class="absolute left-0 top-1 w-[24px] h-[24px] rounded-full bg-surface-container flex items-center justify-center border-2 border-slate-800 z-10">
+<div class="w-2 h-2 rounded-full bg-slate-800"></div>
+</div>
+<div>
+<p class="text-sm font-bold">Inspection Logged</p>
+<p class="text-xs text-slate-500">Unit #101-C • Passed</p>
+<p class="text-[10px] text-slate-500 mt-1 uppercase font-bold tracking-tighter">07:15 AM</p>
+</div>
+</div>
+<!-- Record -->
+<div class="relative pl-8">
+<div class="absolute left-0 top-1 w-[24px] h-[24px] rounded-full bg-surface-container flex items-center justify-center border-2 border-error/50 z-10">
+<div class="w-2 h-2 rounded-full bg-error"></div>
+</div>
+<div>
+<p class="text-sm font-bold">G-Force Warning</p>
+<p class="text-xs text-slate-500">Unit #772-B • Harsh Braking</p>
+<p class="text-[10px] text-error mt-1 uppercase font-bold tracking-tighter">06:42 AM</p>
+</div>
+</div>
+</div>
+<button class="w-full mt-8 py-3 text-xs font-bold text-sky-400 uppercase tracking-widest border border-sky-400/20 rounded hover:bg-sky-400/5 transition-colors">
+                        View Complete Logs
+                    </button>
+</div>
+</div>
+</div>
+<!-- Data Visualization Mock -->
+<div class="mt-12 bg-surface-container rounded-xl p-8 relative overflow-hidden group">
+<div class="flex justify-between items-end mb-8 relative z-10">
+<div>
+<p class="text-sky-400 text-[10px] font-bold uppercase tracking-widest mb-1">Performance_Stream</p>
+<h5 class="font-headline text-2xl font-bold">Fleet Telemetry Velocity</h5>
+</div>
+<div class="flex gap-2">
+<span class="w-24 h-1 bg-sky-400/20 rounded-full overflow-hidden"><span class="block h-full w-2/3 bg-sky-400"></span></span>
+<span class="w-12 h-1 bg-slate-700 rounded-full"></span>
+</div>
+</div>
+<!-- SVG Chart Mock -->
+<div class="h-48 w-full relative z-10">
+<svg class="w-full h-full preserve-3d" viewbox="0 0 1000 200">
+<defs>
+<lineargradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#38BDF8" stop-opacity="0.3"></stop>
+<stop offset="100%" stop-color="#38BDF8" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<path d="M0,150 Q100,50 200,120 T400,80 T600,140 T800,60 T1000,100 L1000,200 L0,200 Z" fill="url(#chartGradient)"></path>
+<path d="M0,150 Q100,50 200,120 T400,80 T600,140 T800,60 T1000,100" fill="none" stroke="#38BDF8" stroke-width="3"></path>
+</svg>
+</div>
+<div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(56,189,248,0.1),transparent)] pointer-events-none"></div>
+</div>
+</main>
+<!-- BottomNavBar for Mobile -->
+<nav class="fixed bottom-0 left-0 right-0 h-16 bg-slate-900/90 backdrop-blur-xl md:hidden flex justify-around items-center px-4 z-[70] border-t border-slate-800">
+<a class="flex flex-col items-center gap-1 text-sky-400" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-[9px] font-bold uppercase">Command</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span class="text-[9px] font-bold uppercase">Grid</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined" data-icon="build">build</span>
+<span class="text-[9px] font-bold uppercase">Ops</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined" data-icon="sensors">sensors</span>
+<span class="text-[9px] font-bold uppercase">Data</span>
+</a>
+</nav>
+<!-- Floating Action Button -->
+<button class="fixed bottom-24 right-8 w-14 h-14 bg-gradient-to-br from-sky-400 to-sky-600 rounded-full flex items-center justify-center text-on-primary shadow-[0_0_20px_rgba(56,189,248,0.4)] active:scale-90 transition-transform md:bottom-8">
+<span class="material-symbols-outlined font-bold text-3xl" data-icon="add">add</span>
+</button>
+</body></html>

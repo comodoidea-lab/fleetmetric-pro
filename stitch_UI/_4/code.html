@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ja"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Manrope:wght@500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "error-container": "#ffdad6",
+              "on-tertiary-container": "#4bb278",
+              "error": "#ba1a1a",
+              "tertiary-fixed-dim": "#74db9d",
+              "on-tertiary": "#ffffff",
+              "surface-container": "#ebeef0",
+              "surface": "#f7fafc",
+              "surface-bright": "#f7fafc",
+              "tertiary-container": "#003f23",
+              "surface-container-low": "#f1f4f6",
+              "on-background": "#181c1e",
+              "inverse-on-surface": "#eef1f3",
+              "surface-dim": "#d7dadc",
+              "tertiary": "#002713",
+              "on-secondary-container": "#586377",
+              "on-primary": "#ffffff",
+              "background": "#f7fafc",
+              "primary-fixed": "#d6e3ff",
+              "outline": "#74777f",
+              "on-tertiary-fixed": "#002110",
+              "on-surface-variant": "#43474e",
+              "on-tertiary-fixed-variant": "#00522f",
+              "on-secondary": "#ffffff",
+              "surface-tint": "#455f88",
+              "on-surface": "#181c1e",
+              "on-secondary-fixed-variant": "#3c475a",
+              "secondary": "#545f72",
+              "on-primary-container": "#86a0cd",
+              "secondary-fixed": "#d8e3fa",
+              "on-secondary-fixed": "#111c2c",
+              "inverse-surface": "#2d3133",
+              "on-primary-fixed-variant": "#2d476f",
+              "surface-variant": "#e0e3e5",
+              "secondary-container": "#d5e0f7",
+              "surface-container-high": "#e5e9eb",
+              "on-primary-fixed": "#001b3c",
+              "inverse-primary": "#adc7f7",
+              "primary-container": "#1a365d",
+              "surface-container-lowest": "#ffffff",
+              "primary-fixed-dim": "#adc7f7",
+              "secondary-fixed-dim": "#bcc7dd",
+              "surface-container-highest": "#e0e3e5",
+              "outline-variant": "#c4c6cf",
+              "on-error": "#ffffff",
+              "on-error-container": "#93000a",
+              "tertiary-fixed": "#91f8b8",
+              "primary": "#002045"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .font-headline { font-family: 'Manrope', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-lg flex justify-between items-center px-6 h-16 shadow-sm">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tight text-blue-900">FleetMetric Pro</span>
+<div class="hidden md:flex gap-6 items-center font-manrope text-sm font-medium">
+<a class="text-blue-700 font-bold border-b-2 border-blue-700 py-5" href="#">Dashboard</a>
+<a class="text-slate-500 hover:bg-slate-50 transition-colors py-5" href="#">Vehicle List</a>
+<a class="text-slate-500 hover:bg-slate-50 transition-colors py-5" href="#">Reports</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-500 hover:bg-slate-50 transition-colors rounded-full">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<img alt="User Profile Menu" class="w-8 h-8 rounded-full object-cover border border-outline-variant" data-alt="professional portrait of a fleet manager in a crisp white shirt with soft office lighting background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7dOHzESE1uUKh84on3ZvetmIeWo59nO8kvx2nWccsYj3DGquLXzvq6iAOZ3r2hs5N7C4INxPXf8elr3YC4SG2ik5FNvtTLCN4N9ceRzDU0F2HkuinQksPKryf6vSfb6ftFI3UCeyhx7Fudf3kaT_XPDrxv0PDbL8zo237n-XyPWATclroFj43LG6YFAUmT7FJNeQ_-Gyckb2T2pEQ_Z61zt7v_1BqvWGvpo5g7uyD8CURiiv5-V5RcQx7uaY_qqxPnceXuhZkbUY"/>
+</div>
+<div class="bg-slate-100 h-[1px] w-full absolute bottom-0 left-0"></div>
+</nav>
+<!-- SideNavBar (Hidden on small screens) -->
+<aside class="hidden lg:flex flex-col py-6 px-4 gap-2 h-screen w-64 fixed left-0 top-0 bg-slate-50 z-40">
+<div class="mb-10 px-2">
+<h2 class="text-lg font-black text-blue-900 font-headline">Fleet Authority</h2>
+<p class="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold opacity-70">Command Center</p>
+</div>
+<div class="flex flex-col gap-1 flex-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-200/50 transition-all rounded-lg font-semibold text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span> Dashboard
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 bg-white text-blue-900 rounded-lg shadow-sm font-bold text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="directions_car">directions_car</span> Vehicle List
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-200/50 transition-all rounded-lg font-semibold text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="build">build</span> Maintenance Records
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-200/50 transition-all rounded-lg font-semibold text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="local_gas_station">local_gas_station</span> Refueling Records
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-200/50 transition-all rounded-lg font-semibold text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="report_problem">report_problem</span> Accident/Repair Logs
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-200/50 transition-all rounded-lg font-semibold text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="bar_chart">bar_chart</span> Reports/Stats
+            </a>
+</div>
+<div class="mt-auto flex flex-col gap-1 border-t border-slate-200 pt-4">
+<a class="flex items-center gap-3 px-4 py-2 text-slate-600 hover:bg-slate-200/50 transition-all text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span> Settings
+            </a>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-600 hover:bg-slate-200/50 transition-all text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span> Support
+            </a>
+</div>
+<div class="bg-slate-200 w-[1px] h-full absolute right-0 top-0"></div>
+</aside>
+<!-- Main Content -->
+<main class="lg:ml-64 pt-20 px-6 pb-12 min-h-screen bg-surface">
+<!-- Header Actions & Title -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+<div>
+<nav class="flex text-xs text-on-surface-variant mb-2 gap-2 items-center">
+<span class="hover:text-primary cursor-pointer">車両一覧</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="font-bold text-primary">車両詳細</span>
+</nav>
+<h1 class="text-3xl font-black text-primary font-headline tracking-tight">車両詳細</h1>
+</div>
+<div class="flex gap-3">
+<button class="px-5 py-2.5 bg-surface-container-high text-primary font-bold rounded-lg hover:bg-surface-container-highest transition-all flex items-center gap-2 text-sm shadow-sm">
+<span class="material-symbols-outlined text-sm">edit</span> 編集
+                </button>
+<button class="px-5 py-2.5 bg-error-container text-on-error-container font-bold rounded-lg hover:opacity-90 transition-all flex items-center gap-2 text-sm shadow-sm">
+<span class="material-symbols-outlined text-sm">delete</span> 削除
+                </button>
+<button class="px-5 py-2.5 bg-primary text-on-primary font-bold rounded-lg hover:opacity-90 transition-all flex items-center gap-2 text-sm shadow-sm">
+<span class="material-symbols-outlined text-sm">add</span> 新規記録追加
+                </button>
+</div>
+</div>
+<!-- Hero Section: Bento Style -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-10">
+<!-- Vehicle Image & Core Info -->
+<div class="lg:col-span-8 bg-surface-container-lowest rounded-xl p-1 flex flex-col md:flex-row gap-6 shadow-sm overflow-hidden min-h-[320px]">
+<div class="md:w-1/2 relative group">
+<img alt="Fleet Truck" class="w-full h-full object-cover rounded-lg" data-alt="Modern white commercial delivery truck parked in a clean warehouse with industrial lighting and soft shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBAoEPSZ8pcesxdsKGLyLugwp1NUP4mlKlChmNmvv-erSTA8WKJQsc0t9mlLdPjWEPwGoUl3gOstI6Nou9OC-9-AOgyreEdRuWL5NQywRCh5vqI5LLANCdsJTFPH2d00rurHsTayGLuC1HG1ptXk4c2_nQo4aF5W9vWzJjX6YDk4BJeS31AQ5lLn5Zv_Z3F4pEr-2X4Kf4XMyMsCsDASn1unogHSzkvwGQpoXvMT7BOLLF862WoSQDbZ16-Qo8AsH9Oixr-1CaVZ_s"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+<span class="text-white font-bold flex items-center gap-2 cursor-pointer">
+<span class="material-symbols-outlined">photo_camera</span> 写真を変更
+                        </span>
+</div>
+</div>
+<div class="md:w-1/2 p-6 flex flex-col justify-center">
+<div class="flex flex-col gap-1 mb-6">
+<span class="text-on-surface-variant text-[11px] font-bold uppercase tracking-widest opacity-60">Vehicle Identity</span>
+<div class="flex items-baseline gap-3">
+<h2 class="text-4xl font-black text-primary font-headline">TR-0842</h2>
+<span class="px-3 py-1 bg-surface-container text-primary font-bold rounded text-xs">品川 100 あ 12-34</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-y-6">
+<div>
+<p class="text-[10px] text-on-surface-variant uppercase font-bold tracking-tighter mb-1">Make / Model</p>
+<p class="font-bold text-on-surface">Isuzu Giga / 2022</p>
+</div>
+<div>
+<p class="text-[10px] text-on-surface-variant uppercase font-bold tracking-tighter mb-1">Current Odometer</p>
+<p class="font-bold text-on-surface">42,500 <span class="text-xs font-medium">km</span></p>
+</div>
+<div>
+<p class="text-[10px] text-on-surface-variant uppercase font-bold tracking-tighter mb-1">Last Inspection</p>
+<p class="font-bold text-on-surface">2023.11.12</p>
+</div>
+<div>
+<p class="text-[10px] text-on-surface-variant uppercase font-bold tracking-tighter mb-1">Status</p>
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-on-tertiary-container shadow-[0_0_8px_rgba(75,178,120,0.4)]"></span>
+<span class="text-xs font-bold text-on-tertiary-container">稼働中</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Quick Metrics -->
+<div class="lg:col-span-4 grid grid-rows-2 gap-6">
+<div class="bg-primary text-on-primary rounded-xl p-6 relative overflow-hidden flex flex-col justify-between shadow-lg">
+<div class="relative z-10">
+<p class="text-[11px] font-bold opacity-60 tracking-[0.2em] mb-1">EFFICIENCY</p>
+<h3 class="text-3xl font-black font-headline">7.2 <span class="text-sm opacity-80">km/L</span></h3>
+</div>
+<div class="flex justify-between items-end relative z-10">
+<div class="flex flex-col">
+<span class="text-[10px] font-medium opacity-60">Fuel Cost (MTD)</span>
+<span class="text-lg font-bold">¥124,500</span>
+</div>
+<span class="material-symbols-outlined text-5xl opacity-10 absolute -bottom-2 -right-2">insights</span>
+</div>
+<div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10"></div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-6 flex flex-col justify-between shadow-sm border border-slate-100">
+<div>
+<p class="text-[11px] text-on-surface-variant font-bold tracking-[0.2em] mb-1 uppercase">Next Maintenance</p>
+<h3 class="text-2xl font-black text-primary font-headline">In 14 Days</h3>
+</div>
+<div class="w-full bg-surface-container rounded-full h-1.5 mt-2 overflow-hidden">
+<div class="bg-error h-full" style="width: 85%"></div>
+</div>
+<p class="text-[10px] text-on-surface-variant mt-2 font-medium">Brake pad replacement scheduled at 45,000km</p>
+</div>
+</div>
+</div>
+<!-- Tabbed Content Section -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+<!-- Tabs Navigation -->
+<div class="flex border-b border-surface-container-high px-6 overflow-x-auto">
+<button class="px-6 py-5 border-b-2 border-primary text-primary font-bold text-sm whitespace-nowrap">
+                    1. 基本情報
+                </button>
+<button class="px-6 py-5 border-b-2 border-transparent text-on-surface-variant font-semibold text-sm hover:text-primary transition-all whitespace-nowrap">
+                    2. 整備履歴
+                </button>
+<button class="px-6 py-5 border-b-2 border-transparent text-on-surface-variant font-semibold text-sm hover:text-primary transition-all whitespace-nowrap">
+                    3. 事故・修理履歴
+                </button>
+<button class="px-6 py-5 border-b-2 border-transparent text-on-surface-variant font-semibold text-sm hover:text-primary transition-all whitespace-nowrap">
+                    4. 給油記録
+                </button>
+</div>
+<!-- Tab Panels (Active: Maintenance History mock for demo) -->
+<div class="p-6 md:p-8">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-xl font-bold text-primary font-headline">整備履歴 (Maintenance History)</h3>
+<div class="flex gap-2">
+<button class="text-xs font-bold text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">filter_list</span> フィルター
+                        </button>
+<button class="text-xs font-bold text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">download</span> 出力
+                        </button>
+</div>
+</div>
+<!-- Timeline List -->
+<div class="flex flex-col">
+<!-- Timeline Item -->
+<div class="flex gap-4 md:gap-8 pb-8 group">
+<div class="flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-on-primary transition-all">
+<span class="material-symbols-outlined">build</span>
+</div>
+<div class="w-[2px] flex-1 bg-surface-container-high my-2"></div>
+</div>
+<div class="flex-1 bg-surface rounded-xl p-5 hover:bg-white hover:shadow-md transition-all border border-transparent hover:border-slate-100 relative">
+<div class="absolute left-0 top-6 w-1 h-12 bg-on-tertiary-container rounded-r-full"></div>
+<div class="flex flex-col md:flex-row md:justify-between mb-2 gap-2">
+<h4 class="font-bold text-on-surface">エンジンオイル交換・エレメント交換</h4>
+<span class="text-[11px] font-bold text-on-surface-variant bg-surface-container px-2 py-1 rounded">2023.12.15</span>
+</div>
+<p class="text-sm text-on-surface-variant leading-relaxed mb-4">定期メンテナンス。使用オイル：5W-30 全合成油。次回 47,500km または半年後。</p>
+<div class="flex justify-between items-center border-t border-slate-100 pt-4">
+<div class="flex gap-4">
+<div class="flex flex-col">
+<span class="text-[9px] font-bold text-on-surface-variant uppercase tracking-tighter">Mileage</span>
+<span class="text-sm font-bold">42,100 km</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[9px] font-bold text-on-surface-variant uppercase tracking-tighter">Cost</span>
+<span class="text-sm font-bold">¥12,800</span>
+</div>
+</div>
+<div class="flex gap-2">
+<span class="text-[10px] px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-bold uppercase">Healthy</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary">more_vert</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Timeline Item -->
+<div class="flex gap-4 md:gap-8 pb-8 group">
+<div class="flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-on-primary transition-all">
+<span class="material-symbols-outlined">tire_repair</span>
+</div>
+<div class="w-[2px] flex-1 bg-surface-container-high my-2"></div>
+</div>
+<div class="flex-1 bg-surface rounded-xl p-5 hover:bg-white hover:shadow-md transition-all border border-transparent hover:border-slate-100 relative">
+<div class="absolute left-0 top-6 w-1 h-12 bg-secondary rounded-r-full"></div>
+<div class="flex flex-col md:flex-row md:justify-between mb-2 gap-2">
+<h4 class="font-bold text-on-surface">タイヤローテーション</h4>
+<span class="text-[11px] font-bold text-on-surface-variant bg-surface-container px-2 py-1 rounded">2023.10.05</span>
+</div>
+<p class="text-sm text-on-surface-variant leading-relaxed mb-4">前後ローテーション実施。空気圧調整済み。</p>
+<div class="flex justify-between items-center border-t border-slate-100 pt-4">
+<div class="flex gap-4">
+<div class="flex flex-col">
+<span class="text-[9px] font-bold text-on-surface-variant uppercase tracking-tighter">Mileage</span>
+<span class="text-sm font-bold">38,500 km</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[9px] font-bold text-on-surface-variant uppercase tracking-tighter">Cost</span>
+<span class="text-sm font-bold">¥4,500</span>
+</div>
+</div>
+<div class="flex gap-2">
+<span class="text-[10px] px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-bold uppercase">Completed</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary">more_vert</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Timeline Item -->
+<div class="flex gap-4 md:gap-8 pb-8 group">
+<div class="flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-error-container flex items-center justify-center text-on-error-container">
+<span class="material-symbols-outlined">report_problem</span>
+</div>
+<div class="w-[2px] flex-1 bg-surface-container-high my-2"></div>
+</div>
+<div class="flex-1 bg-surface rounded-xl p-5 hover:bg-white hover:shadow-md transition-all border border-transparent hover:border-slate-100 relative">
+<div class="absolute left-0 top-6 w-1 h-12 bg-error rounded-r-full"></div>
+<div class="flex flex-col md:flex-row md:justify-between mb-2 gap-2">
+<h4 class="font-bold text-on-surface">ブレーキパッド緊急交換</h4>
+<span class="text-[11px] font-bold text-on-surface-variant bg-surface-container px-2 py-1 rounded">2023.07.22</span>
+</div>
+<p class="text-sm text-on-surface-variant leading-relaxed mb-4">異音検知のため入庫。フロントブレーキパッドの摩耗が激しいため交換。ディスクローター研磨実施。</p>
+<div class="flex justify-between items-center border-t border-slate-100 pt-4">
+<div class="flex gap-4">
+<div class="flex flex-col">
+<span class="text-[9px] font-bold text-on-surface-variant uppercase tracking-tighter">Mileage</span>
+<span class="text-sm font-bold">31,200 km</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[9px] font-bold text-on-surface-variant uppercase tracking-tighter">Cost</span>
+<span class="text-sm font-bold">¥38,400</span>
+</div>
+</div>
+<div class="flex gap-2">
+<span class="text-[10px] px-2 py-0.5 rounded bg-error-container text-on-error-container font-bold uppercase">Urgent</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary">more_vert</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-4 flex justify-center">
+<button class="text-primary font-bold text-sm hover:underline py-2">全履歴を表示 (34件)</button>
+</div>
+</div>
+</div>
+<!-- Footer Summary Bento -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+<div class="bg-surface-container-low rounded-xl p-6 border border-slate-200/50">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary">local_gas_station</span>
+<span class="font-bold text-on-surface-variant">Avg. Fuel Price</span>
+</div>
+<p class="text-2xl font-black text-primary font-headline">¥168.4 <span class="text-xs font-medium">/ L</span></p>
+<p class="text-[10px] text-on-tertiary-container font-bold mt-1">↓ 2.1% from last month</p>
+</div>
+<div class="bg-surface-container-low rounded-xl p-6 border border-slate-200/50">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary">speed</span>
+<span class="font-bold text-on-surface-variant">Daily Avg. Usage</span>
+</div>
+<p class="text-2xl font-black text-primary font-headline">142 <span class="text-xs font-medium">km</span></p>
+<p class="text-[10px] text-on-surface-variant font-bold mt-1">Consistent with fleet average</p>
+</div>
+<div class="bg-surface-container-low rounded-xl p-6 border border-slate-200/50">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary">history</span>
+<span class="font-bold text-on-surface-variant">Last Activity</span>
+</div>
+<p class="text-2xl font-black text-primary font-headline">2h ago</p>
+<p class="text-[10px] text-on-surface-variant font-bold mt-1">Engine shutdown at Yard A</p>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Visible on Mobile) -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 bg-white shadow-[0_-1px_10px_rgba(0,0,0,0.05)] flex justify-around items-center h-16 px-2">
+<a class="flex flex-col items-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px] font-bold">Dash</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-blue-700" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">directions_car</span>
+<span class="text-[10px] font-bold">Vehicles</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-[10px] font-bold">Stats</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-bold">Menu</span>
+</a>
+</nav>
+</body></html>

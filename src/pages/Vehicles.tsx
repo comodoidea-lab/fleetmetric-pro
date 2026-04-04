@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useStore } from '../store/store';
 import { StatusBadge } from '../components/StatusBadge';
 import { VehicleForm } from '../components/forms/VehicleForm';
+import { DialogModal } from '../components/DialogModal';
 
 type FilterStatus = 'all' | '稼働中' | '整備中' | '廃車';
 
@@ -32,6 +33,7 @@ export function Vehicles() {
   const [showForm, setShowForm] = useState(false);
   const [editVehicle, setEditVehicle] = useState<(typeof vehicles)[0] | null>(null);
   const [menuId, setMenuId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<(typeof vehicles)[0] | null>(null);
 
   const filtered = vehicles.filter(v => {
     const matchStatus = filter === 'all' || v['ステータス'] === filter;
@@ -113,7 +115,7 @@ export function Vehicles() {
               <div className="flex items-center gap-4 px-5 py-4">
                 {/* Icon */}
                 <div className="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center flex-shrink-0">
-                  <span className="material-symbols-outlined text-primary" style={{ fontSize: 20 }}>directions_car</span>
+                  <span className="material-symbols-outlined text-primary" style={{ fontSize: 20 }}>{v['アイコン'] || 'directions_car'}</span>
                 </div>
 
                 {/* Info */}
@@ -157,7 +159,7 @@ export function Vehicles() {
                             <span className="material-symbols-outlined" style={{ fontSize: 16 }}>edit</span>編集
                           </button>
                           <button
-                            onClick={async () => { if (confirm('削除しますか？')) { await deleteVehicle(v['車両ID']); setMenuId(null); } }}
+                            onClick={() => { setDeleteTarget(v); setMenuId(null); }}
                             className="flex items-center gap-2 w-full px-4 py-3 text-sm hover:bg-error-container transition-colors text-error"
                           >
                             <span className="material-symbols-outlined" style={{ fontSize: 16 }}>delete</span>削除
@@ -178,6 +180,16 @@ export function Vehicles() {
         <VehicleForm
           vehicle={editVehicle}
           onClose={() => { setShowForm(false); setEditVehicle(null); }}
+        />
+      )}
+      {deleteTarget && (
+        <DialogModal
+          variant="danger"
+          title="車両を削除"
+          message={`「${deleteTarget['車両名']}」を削除しますか？\nこの操作は取り消せません。`}
+          confirmLabel="削除する"
+          onConfirm={() => deleteVehicle(deleteTarget['車両ID'])}
+          onClose={() => setDeleteTarget(null)}
         />
       )}
     </div>
