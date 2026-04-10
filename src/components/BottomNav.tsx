@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
+import { useMultiDriverMode } from '../hooks/useMultiDriverMode';
 
-const TABS = [
+const TABS_BASE = [
   { to: '/', icon: 'dashboard', label: 'ホーム' },
   { to: '/vehicles', icon: 'directions_car', label: '車両' },
   { to: '/maintenance', icon: 'build', label: '整備' },
@@ -9,17 +10,32 @@ const TABS = [
   { to: '/settings', icon: 'settings', label: '設定' },
 ];
 
+const TABS_DRIVER_EXTRA = [
+  { to: '/drivers', icon: 'badge', label: 'ドライバー' },
+  { to: '/operations', icon: 'route', label: '運行' },
+];
+
 export function BottomNav() {
+  const { multiDriverMode } = useMultiDriverMode();
+  const TABS = multiDriverMode
+    ? [
+        ...TABS_BASE.slice(0, 2),
+        ...TABS_DRIVER_EXTRA,
+        ...TABS_BASE.slice(2),
+      ]
+    : TABS_BASE;
+  const compactTabs = TABS.length > 6;
+
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface-container-lowest border-t border-outline-variant/20 pb-safe">
-      <div className="flex items-stretch h-16">
+      <div className="flex items-stretch h-16 min-w-0">
         {TABS.map(({ to, icon, label }) => (
           <NavLink
             key={to}
             to={to}
             end={to === '/'}
             className={({ isActive }) =>
-              `flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors ${
+              `flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 transition-colors ${
                 isActive ? 'text-primary' : 'text-on-surface-variant'
               }`
             }
@@ -32,7 +48,7 @@ export function BottomNav() {
                 >
                   {icon}
                 </span>
-                <span className="text-[9px] font-label font-medium leading-none">{label}</span>
+                <span className={`${compactTabs ? 'text-[7px]' : 'text-[9px]'} font-label font-medium leading-none text-center px-0.5`}>{label}</span>
               </>
             )}
           </NavLink>

@@ -2,7 +2,11 @@
 // FleetMetric Pro - Mock Data (for localhost preview)
 // ============================================================
 
-import { Vehicle, MaintenanceRecord, FuelRecord, AccidentRecord, DashboardData, Statistics } from '../types';
+import {
+  Vehicle, MaintenanceRecord, FuelRecord, AccidentRecord,
+  Driver, OperationRecord,
+  DashboardData, Statistics,
+} from '../types';
 
 const today = new Date();
 const fmt = (d: Date) => d.toISOString().split('T')[0].replace(/-/g, '/');
@@ -37,6 +41,50 @@ export const MOCK_ACCIDENTS: AccidentRecord[] = [
   { '記録ID': 'A001', '車両ID': 'V003', '車両名': '日産 ノート', '日付': fmt(subDays(today, 120)), '事故・修理内容': '追突事故（軽微）', '損傷箇所': 'リアバンパー', '費用(円)': 85000, '業者': '板金塗装 山田', '完了日': fmt(subDays(today, 100)), '備考': '相手方保険対応' },
 ];
 
+export const MOCK_DRIVERS: Driver[] = [
+  { 'ドライバーID': 'D001', '氏名': '山田 太郎', '電話番号': '090-1111-2222', 'ステータス': '稼働中', '備考': '', '登録日': '2024/01/10' },
+  { 'ドライバーID': 'D002', '氏名': '佐藤 花子', '電話番号': '080-3333-4444', 'ステータス': '稼働中', '備考': '', '登録日': '2024/03/05' },
+  { 'ドライバーID': 'D003', '氏名': '鈴木 一郎', '電話番号': '070-5555-6666', 'ステータス': '休止', '備考': '休職中', '登録日': '2023/11/20' },
+];
+
+const opDepart = (d: Date) => {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
+export const MOCK_OPERATION_RECORDS: OperationRecord[] = [
+  {
+    '記録ID': 'R001',
+    '車両ID': 'V001',
+    '車両名': 'トヨタ プリウス',
+    'ドライバーID': 'D001',
+    'ドライバー名': '山田 太郎',
+    '出発日時': opDepart(subDays(today, 1)),
+    '帰着日時': opDepart(subDays(today, 1)),
+    '出発時走行距離(km)': 45200,
+    '帰着時走行距離(km)': 45245,
+    '走行距離(km)': 45,
+    '用途': '仕事',
+    '目的地': '港区オフィス',
+    '備考': '',
+  },
+  {
+    '記録ID': 'R002',
+    '車両ID': 'V002',
+    '車両名': 'ホンダ フィット',
+    'ドライバーID': 'D002',
+    'ドライバー名': '佐藤 花子',
+    '出発日時': opDepart(subDays(today, 3)),
+    '帰着日時': opDepart(subDays(today, 3)),
+    '出発時走行距離(km)': 32000,
+    '帰着時走行距離(km)': 32080,
+    '走行距離(km)': 80,
+    '用途': 'プライベート',
+    '目的地': 'スーパー',
+    '備考': '',
+  },
+];
+
 const alerts: import('../types').Alert[] = MOCK_VEHICLES.flatMap(v => {
   const items: import('../types').Alert[] = [];
   const checkDate = (field: '車検期限' | '法定点検期限', label: string) => {
@@ -59,6 +107,8 @@ export const MOCK_DATA = {
   maintenance: MOCK_MAINTENANCE,
   fuel: MOCK_FUEL,
   accidents: MOCK_ACCIDENTS,
+  drivers: MOCK_DRIVERS,
+  operationRecords: MOCK_OPERATION_RECORDS,
   dashboard: {
     vehicleCount: MOCK_VEHICLES.length,
     activeCount: MOCK_VEHICLES.filter(v => v['ステータス'] === '稼働中').length,

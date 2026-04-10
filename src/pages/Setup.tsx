@@ -16,7 +16,7 @@ const SHEET = {
 };
 
 /** FleetMetric Pro アプリ側の GAS_API_VERSION と揃える */
-const GAS_API_VERSION = 1;
+const GAS_API_VERSION = 2;
 
 function doGet(e) {
   if (!e || !e.parameter || !e.parameter.action) {
@@ -81,6 +81,27 @@ function doGet(e) {
       case 'deleteAccident':
         result = deleteAccidentRecord(e.parameter.id);
         break;
+      case 'drivers':
+        result = { success: true, data: getDrivers() };
+        break;
+      case 'operationRecords':
+        result = { success: true, data: getOperationRecords(e.parameter.vehicleId || null, e.parameter.driverId || null) };
+        break;
+      case 'addDriver':
+        result = addDriver(JSON.parse(e.parameter.data));
+        break;
+      case 'updateDriver':
+        result = updateDriver(JSON.parse(e.parameter.data));
+        break;
+      case 'deleteDriver':
+        result = deleteDriver(e.parameter.id);
+        break;
+      case 'addOperationRecord':
+        result = addOperationRecord(JSON.parse(e.parameter.data));
+        break;
+      case 'deleteOperationRecord':
+        result = deleteOperationRecord(e.parameter.id);
+        break;
       default:
         result = { success: false, error: 'Unknown action: ' + action };
     }
@@ -112,7 +133,9 @@ function _initSheet(sheet, sheetName) {
     '車両マスタ':      ['車両ID','車両名','ナンバー','メーカー','車種','年式','車検期限','法定点検期限','ステータス','備考','登録日','アイコン'],
     'メンテナンス記録': ['記録ID','車両ID','車両名','日付','走行距離(km)','作業内容','費用(円)','業者','次回予定日','備考'],
     '事故・修理履歴':   ['記録ID','車両ID','車両名','日付','事故・修理内容','損傷箇所','費用(円)','業者','完了日','備考'],
-    '給油記録':        ['記録ID','車両ID','車両名','日付','走行距離(km)','給油量(L)','単価(円/L)','費用(円)','スタンド名','備考']
+    '給油記録':        ['記録ID','車両ID','車両名','日付','走行距離(km)','給油量(L)','単価(円/L)','費用(円)','スタンド名','備考'],
+    'ドライバーマスタ': ['ドライバーID','氏名','電話番号','ステータス','備考','登録日'],
+    '運行記録':        ['記録ID','車両ID','車両名','ドライバーID','ドライバー名','出発日時','帰着日時','出発時走行距離(km)','帰着時走行距離(km)','走行距離(km)','用途','目的地','備考']
   };
   const headers = HEADERS[sheetName];
   if (!headers) return;
@@ -127,7 +150,7 @@ function _initSheet(sheet, sheetName) {
 
 function initializeAllSheets() {
   try {
-    ['車両マスタ','メンテナンス記録','事故・修理履歴','給油記録'].forEach(name => {
+    ['車両マスタ','メンテナンス記録','事故・修理履歴','給油記録','ドライバーマスタ','運行記録'].forEach(name => {
       const sheet = getSheet(name);
       _initSheet(sheet, name); // 既存シートもヘッダー行を更新
     });
@@ -137,21 +160,31 @@ function initializeAllSheets() {
   }
 }
 
+function _cellValue(header, val) {
+  if (val === null || val === undefined) return '';
+  if (val instanceof Date) {
+    var h = String(header);
+    if (h.indexOf('日時') >= 0) {
+      return Utilities.formatDate(val, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm');
+    }
+    return Utilities.formatDate(val, 'Asia/Tokyo', 'yyyy/MM/dd');
+  }
+  return val;
+}
+
 function _sheetToObjects(sheet) {
   const data = sheet.getDataRange().getValues();
   if (data.length <= 1) return [];
   const headers = data[0];
   return data.slice(1)
-    .map(row => {
+    .map(function(row) {
       const obj = {};
-      headers.forEach((h, i) => {
-        obj[h] = (row[i] instanceof Date)
-          ? Utilities.formatDate(row[i], 'Asia/Tokyo', 'yyyy/MM/dd')
-          : row[i];
+      headers.forEach(function(h, i) {
+        obj[h] = _cellValue(h, row[i]);
       });
       return obj;
     })
-    .filter(r => r[headers[0]]);
+    .filter(function(r) { return r[headers[0]]; });
 }
 
 function getVehicles() { return _sheetToObjects(getSheet('車両マスタ')); }
@@ -340,6 +373,110 @@ function getStatistics() {
     totalMaintCost: allMaintenance.reduce((s,r) => s + (parseFloat(r['費用(円)']) || 0), 0),
     totalAccidentCost: allAccidents.reduce((s,r) => s + (parseFloat(r['費用(円)']) || 0), 0)
   };
+}
+
+function getDrivers() {
+  return _sheetToObjects(getSheet('ドライバーマスタ'));
+}
+
+function addDriver(d) {
+  try {
+    const id = 'D' + new Date().getTime();
+    getSheet('ドライバーマスタ').appendRow([
+      id,
+      d['氏名'] || d.name || '',
+      d['電話番号'] || d.phone || '',
+      d['ステータス'] || d.status || '稼働中',
+      d['備考'] || d.notes || '',
+      Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd')
+    ]);
+    return { success: true, id: id };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+}
+
+function updateDriver(d) {
+  try {
+    const sheet = getSheet('ドライバーマスタ');
+    const data = sheet.getDataRange().getValues();
+    const id = d['ドライバーID'] || d.id;
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][0]) === String(id)) {
+        sheet.getRange(i + 1, 1, 1, 6).setValues([[
+          id,
+          d['氏名'] || '',
+          d['電話番号'] || '',
+          d['ステータス'] || '稼働中',
+          d['備考'] || '',
+          data[i][5]
+        ]]);
+        return { success: true };
+      }
+    }
+    return { success: false, error: 'ドライバーが見つかりません' };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+}
+
+function deleteDriver(driverId) {
+  try {
+    const sheet = getSheet('ドライバーマスタ');
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][0]) === String(driverId)) {
+        sheet.deleteRow(i + 1);
+        return { success: true };
+      }
+    }
+    return { success: false, error: 'ドライバーが見つかりません' };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+}
+
+function getOperationRecords(vehicleId, driverId) {
+  var r = _sheetToObjects(getSheet('運行記録'));
+  if (vehicleId) r = r.filter(function(x) { return x['車両ID'] === vehicleId; });
+  if (driverId) r = r.filter(function(x) { return x['ドライバーID'] === driverId; });
+  return r.sort(function(a, b) {
+    return String(b['出発日時']).localeCompare(String(a['出発日時']));
+  });
+}
+
+function addOperationRecord(r) {
+  try {
+    const id = 'R' + new Date().getTime();
+    const depKm = parseFloat(r['出発時走行距離(km)']) || 0;
+    const retKm = parseFloat(r['帰着時走行距離(km)']) || 0;
+    var dist = '';
+    if (retKm >= depKm) {
+      dist = Math.round((retKm - depKm) * 1000) / 1000;
+    }
+    getSheet('運行記録').appendRow([
+      id,
+      r['車両ID'],
+      r['車両名'] || '',
+      r['ドライバーID'],
+      r['ドライバー名'] || '',
+      r['出発日時'] || '',
+      r['帰着日時'] || '',
+      depKm,
+      retKm,
+      dist,
+      r['用途'] || '仕事',
+      r['目的地'] || '',
+      r['備考'] || ''
+    ]);
+    return { success: true, id: id };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+}
+
+function deleteOperationRecord(recordId) {
+  return _deleteRecord('運行記録', recordId);
 }
 
 function getConnectionInfo() {

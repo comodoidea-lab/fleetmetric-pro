@@ -6,6 +6,7 @@
 import { create } from 'zustand';
 import {
   Vehicle, MaintenanceRecord, AccidentRecord, FuelRecord,
+  Driver, OperationRecord,
   DashboardData, Statistics, SyncStatus,
 } from '../types';
 import {
@@ -15,6 +16,8 @@ import {
   apiAddMaintenance, apiDeleteMaintenance,
   apiAddFuel, apiDeleteFuel,
   apiAddAccident, apiDeleteAccident,
+  apiGetDrivers, apiAddDriver, apiUpdateDriver, apiDeleteDriver,
+  apiGetOperationRecords, apiAddOperationRecord, apiDeleteOperationRecord,
 } from '../api/gasApi';
 
 // ── localStorage cache helpers ───────────────────────────────
@@ -46,6 +49,8 @@ interface AppState {
   fuel: FuelRecord[];
   accidents: AccidentRecord[];
   statistics: Statistics | null;
+  drivers: Driver[];
+  operationRecords: OperationRecord[];
 
   // UI state
   syncStatus: SyncStatus;
@@ -60,6 +65,8 @@ interface AppState {
   refreshFuel: () => Promise<void>;
   refreshAccidents: () => Promise<void>;
   refreshStatistics: () => Promise<void>;
+  refreshDrivers: () => Promise<void>;
+  refreshOperationRecords: () => Promise<void>;
 
   addVehicle: (v: Omit<Vehicle, '車両ID' | '登録日'>) => Promise<void>;
   updateVehicle: (v: Vehicle) => Promise<void>;
@@ -73,6 +80,13 @@ interface AppState {
 
   addAccident: (r: Omit<AccidentRecord, '記録ID'>) => Promise<void>;
   deleteAccident: (id: string) => Promise<void>;
+
+  addDriver: (d: Omit<Driver, 'ドライバーID' | '登録日'>) => Promise<void>;
+  updateDriver: (d: Driver) => Promise<void>;
+  deleteDriver: (id: string) => Promise<void>;
+
+  addOperationRecord: (r: Omit<OperationRecord, '記録ID' | '走行距離(km)'>) => Promise<void>;
+  deleteOperationRecord: (id: string) => Promise<void>;
 }
 
 // ── Store ────────────────────────────────────────────────────
@@ -83,6 +97,8 @@ export const useStore = create<AppState>((set, get) => ({
   fuel: cacheGet<FuelRecord[]>('fuel') ?? [],
   accidents: cacheGet<AccidentRecord[]>('accidents') ?? [],
   statistics: cacheGet<Statistics>('statistics'),
+  drivers: cacheGet<Driver[]>('drivers') ?? [],
+  operationRecords: cacheGet<OperationRecord[]>('operationRecords') ?? [],
   syncStatus: 'idle',
   lastSynced: null,
   initialized: false,
@@ -91,13 +107,15 @@ export const useStore = create<AppState>((set, get) => ({
   loadAll: async () => {
     set({ syncStatus: 'syncing' });
     try {
-      const [dashboard, vehicles, maintenance, fuel, accidents, statistics] = await Promise.all([
+      const [dashboard, vehicles, maintenance, fuel, accidents, statistics, drivers, operationRecords] = await Promise.all([
         apiGetDashboard(),
         apiGetVehicles(),
         apiGetMaintenance(),
         apiGetFuel(),
         apiGetAccidents(),
         apiGetStatistics(),
+        apiGetDrivers(),
+        apiGetOperationRecords(),
       ]);
       cacheSet('dashboard', dashboard);
       cacheSet('vehicles', vehicles);
@@ -105,7 +123,21 @@ export const useStore = create<AppState>((set, get) => ({
       cacheSet('fuel', fuel);
       cacheSet('accidents', accidents);
       cacheSet('statistics', statistics);
-      set({ dashboard, vehicles, maintenance, fuel, accidents, statistics, syncStatus: 'success', lastSynced: new Date(), initialized: true });
+      cacheSet('drivers', drivers);
+      cacheSet('operationRecords', operationRecords);
+      set({
+        dashboard,
+        vehicles,
+        maintenance,
+        fuel,
+        accidents,
+        statistics,
+        drivers,
+        operationRecords,
+        syncStatus: 'success',
+        lastSynced: new Date(),
+        initialized: true,
+      });
     } catch (e) {
       console.error('loadAll failed:', e);
       set({ syncStatus: 'error', initialized: true });
@@ -142,6 +174,16 @@ export const useStore = create<AppState>((set, get) => ({
     const data = await apiGetStatistics();
     cacheSet('statistics', data);
     set({ statistics: data });
+  },
+  refreshDrivers: async () => {
+    const data = await apiGetDrivers();
+    cacheSet('drivers', data);
+    set({ drivers: data });
+  },
+  refreshOperationRecords: async () => {
+    const data = await apiGetOperationRecords();
+    cacheSet('operationRecords', data);
+    set({ operationRecords: data });
   },
 
   // ── Vehicles CRUD ────────────────────────────────────────
@@ -265,6 +307,85 @@ export const useStore = create<AppState>((set, get) => ({
     } catch {
       set({ accidents: prev });
       throw new Error('事故・修理記録の削除に失敗しました');
+    }
+  },
+
+  // ── Drivers CRUD ─────────────────────────────────────────
+  addDriver: async (d) => {
+    const tmpId = 'D_tmp_' + Date.now();
+    const optimistic = {
+      ...d,
+      'ドライバーID': tmpId,
+      '登録日': new Date().toLocaleDateString('ja-JP'),
+    } as Driver;
+    set(s => ({ drivers: [...s.drivers, optimistic] }));
+    try {
+      const { id } = await apiAddDriver(d);
+      set(s => ({
+        drivers: s.drivers.map(x => (x['ドライバーID'] === tmpId ? { ...optimistic, 'ドライバーID': id } : x)),
+      }));
+      cacheSet('drivers', get().drivers);
+    } catch {
+      set(s => ({ drivers: s.drivers.filter(x => x['ドライバーID'] !== tmpId) }));
+      throw new Error('ドライバーの追加に失敗しました');
+    }
+  },
+
+  updateDriver: async (d) => {
+    const prev = get().drivers;
+    set(s => ({ drivers: s.drivers.map(x => (x['ドライバーID'] === d['ドライバーID'] ? d : x)) }));
+    try {
+      await apiUpdateDriver(d);
+      cacheSet('drivers', get().drivers);
+    } catch {
+      set({ drivers: prev });
+      throw new Error('ドライバーの更新に失敗しました');
+    }
+  },
+
+  deleteDriver: async (id) => {
+    const prev = get().drivers;
+    set(s => ({ drivers: s.drivers.filter(x => x['ドライバーID'] !== id) }));
+    try {
+      await apiDeleteDriver(id);
+      cacheSet('drivers', get().drivers);
+    } catch {
+      set({ drivers: prev });
+      throw new Error('ドライバーの削除に失敗しました');
+    }
+  },
+
+  // ── Operation records ───────────────────────────────────
+  addOperationRecord: async (r) => {
+    const dep = Number(r['出発時走行距離(km)']) || 0;
+    const ret = Number(r['帰着時走行距離(km)']) || 0;
+    const dist = ret >= dep ? Math.round((ret - dep) * 1000) / 1000 : 0;
+    const tmpId = 'R_tmp_' + Date.now();
+    const optimistic = { ...r, '記録ID': tmpId, '走行距離(km)': dist } as OperationRecord;
+    set(s => ({ operationRecords: [optimistic, ...s.operationRecords] }));
+    try {
+      const { id } = await apiAddOperationRecord(r);
+      set(s => ({
+        operationRecords: s.operationRecords.map(x =>
+          x['記録ID'] === tmpId ? { ...optimistic, '記録ID': id } : x,
+        ),
+      }));
+      cacheSet('operationRecords', get().operationRecords);
+    } catch {
+      set(s => ({ operationRecords: s.operationRecords.filter(x => x['記録ID'] !== tmpId) }));
+      throw new Error('運行記録の追加に失敗しました');
+    }
+  },
+
+  deleteOperationRecord: async (id) => {
+    const prev = get().operationRecords;
+    set(s => ({ operationRecords: s.operationRecords.filter(x => x['記録ID'] !== id) }));
+    try {
+      await apiDeleteOperationRecord(id);
+      cacheSet('operationRecords', get().operationRecords);
+    } catch {
+      set({ operationRecords: prev });
+      throw new Error('運行記録の削除に失敗しました');
     }
   },
 }));

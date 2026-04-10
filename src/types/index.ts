@@ -56,6 +56,33 @@ export interface FuelRecord {
   '備考': string;
 }
 
+/** ドライバーマスタ（GAS シート「ドライバーマスタ」） */
+export interface Driver {
+  'ドライバーID': string;
+  '氏名': string;
+  '電話番号': string;
+  'ステータス': '稼働中' | '休止';
+  '備考': string;
+  '登録日': string;
+}
+
+/** 運行記録（GAS シート「運行記録」） */
+export interface OperationRecord {
+  '記録ID': string;
+  '車両ID': string;
+  '車両名': string;
+  'ドライバーID': string;
+  'ドライバー名': string;
+  '出発日時': string;
+  '帰着日時': string;
+  '出発時走行距離(km)': string | number;
+  '帰着時走行距離(km)': string | number;
+  '走行距離(km)': string | number;
+  '用途': '仕事' | 'プライベート';
+  '目的地': string;
+  '備考': string;
+}
+
 export interface Alert {
   type: 'danger' | 'warning';
   vehicleName: string;
