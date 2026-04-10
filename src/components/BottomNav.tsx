@@ -22,7 +22,8 @@ export function BottomNav() {
       { to: '/fuel', label: '給油記録', icon: 'local_gas_station' as const },
       { to: '/accidents', label: '事故・修理', icon: 'report_problem' as const },
     ];
-    if (!multiDriverMode) return base;
+    // localStorage と同一タブ同期後の boolean のみで分岐（falsy ではドライバー系を出さない）
+    if (multiDriverMode !== true) return base;
     return [
       { to: '/drivers', label: 'ドライバー', icon: 'badge' as const },
       { to: '/operations', label: '運行記録', icon: 'route' as const },
