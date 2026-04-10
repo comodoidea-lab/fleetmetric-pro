@@ -313,6 +313,67 @@ const SECTIONS: Section[] = [
     ),
   },
   {
+    id: 'drivers-manual',
+    icon: 'badge',
+    title: 'ドライバー管理の使い方',
+    content: (
+      <div className="space-y-3">
+        <ManualNote type="info">
+          「複数ドライバーモード」は、設定の「表示」からONにすると利用できます。OFFのときはマニュアルにだけ説明が表示され、画面のメニューには出ません。
+        </ManualNote>
+        <p className="text-sm font-label text-on-surface leading-relaxed">
+          <strong className="text-on-surface">複数ドライバーモード</strong>
+          は、設定でONにすると使える
+          <strong className="text-on-surface">複数人で車両を共有・運用するための機能</strong>
+          です。ドライバーごとに情報を分けて管理できます。
+        </p>
+        <ManualHeading>ドライバーの登録と編集</ManualHeading>
+        <div className="space-y-1.5">
+          <ManualStep n="01">設定で「複数ドライバーモード」をONにする</ManualStep>
+          <ManualStep n="02">サイドバーまたは（モバイルでは）「記録」メニューから「ドライバー」を開く</ManualStep>
+          <ManualStep n="03">「ドライバーを追加」で氏名・電話番号などを入力して保存する</ManualStep>
+          <ManualStep n="04">一覧の「編集」から内容を変更、「削除」で登録を削除できる</ManualStep>
+        </div>
+        <ManualHeading>稼働中 / 休止の切り替え</ManualHeading>
+        <p className="text-sm font-label text-on-surface-variant leading-relaxed">
+          一覧の各行で「稼働にする」「休止にする」をタップすると、すぐにステータスを切り替えられます。休止中のドライバーは運行記録の選択肢には残りますが、運用ルールに合わせて運用してください。
+        </p>
+        <ManualNote type="tip">休暇や異動で一時的に運転しない場合は「休止」にしておくと、一覧の見分けがしやすくなります。</ManualNote>
+      </div>
+    ),
+  },
+  {
+    id: 'operations-manual',
+    icon: 'route',
+    title: '運行記録の使い方',
+    content: (
+      <div className="space-y-3">
+        <p className="text-sm font-label text-on-surface leading-relaxed">
+          <strong className="text-on-surface">運行記録</strong>
+          とは、
+          <strong className="text-on-surface">誰が、いつ、どの車両を使ったか</strong>
+          を残す機能です。複数ドライバーモードをONにすると「運行記録」画面から利用できます。
+        </p>
+        <ManualHeading>新規記録を追加する</ManualHeading>
+        <div className="space-y-1.5">
+          <ManualStep n="01">「記録を追加」をタップする</ManualStep>
+          <ManualStep n="02">車両とドライバーをドロップダウンで選ぶ</ManualStep>
+          <ManualStep n="03">出発・帰着の日時と、それぞれの走行距離（メーター）を入力する（走行距離は自動計算されます）</ManualStep>
+          <ManualStep n="04">用途（仕事 / プライベート）と目的地・備考を入力して保存する</ManualStep>
+        </div>
+        <ManualHeading>用途（仕事 / プライベート）について</ManualHeading>
+        <p className="text-sm font-label text-on-surface-variant leading-relaxed">
+          社用・私用の切り分けや、経費・按分計算のもとになる集計に使えます。例えば月次や年次で「仕事」に絞って走行距離や回数を確認する、といった運用がしやすくなります（FleetMetric Pro 内のレポートは用途別の自動按分までは行いません。社内ルールに合わせてご利用ください）。
+        </p>
+        <ManualHeading>一覧の絞り込み</ManualHeading>
+        <p className="text-sm font-label text-on-surface-variant leading-relaxed">
+          画面上部の「車両」「ドライバー」で条件を選ぶと、その条件に合う運行だけが表示されます。条件を外すと全件を日付順に確認できます。
+        </p>
+        <ManualNote type="info">運行記録を使うには、あらかじめ車両マスタとドライバーマスタに登録が必要です。</ManualNote>
+      </div>
+    ),
+  },
+  {
     id: 'settings',
     icon: 'settings',
     title: '設定・よくある質問',
