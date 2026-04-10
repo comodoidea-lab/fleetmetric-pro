@@ -8,6 +8,7 @@ import { getGasUrl } from '../config';
 import { GAS_API_VERSION } from '../version';
 import {
   Vehicle, MaintenanceRecord, AccidentRecord, FuelRecord,
+  Driver, OperationRecord,
   DashboardData, Statistics,
 } from '../types';
 import { MOCK_DATA } from './mockData';
@@ -165,4 +166,53 @@ export async function apiGetConnectionInfo(): Promise<GasConnectionInfo> {
     return { spreadsheetUrl: '', scriptId: '', gasApiVersion: GAS_API_VERSION };
   }
   return gasGet<GasConnectionInfo>('connectionInfo');
+}
+
+// ── ドライバーマスタ ─────────────────────────────────────────
+
+export async function apiGetDrivers(): Promise<Driver[]> {
+  if (!getGasUrl()) return MOCK_DATA.drivers;
+  return gasGet<Driver[]>('drivers');
+}
+
+export async function apiAddDriver(d: Omit<Driver, 'ドライバーID' | '登録日'>): Promise<{ success: boolean; id: string }> {
+  if (!getGasUrl()) return { success: true, id: 'D' + Date.now() };
+  return gasWrite('addDriver', d);
+}
+
+export async function apiUpdateDriver(d: Driver): Promise<{ success: boolean }> {
+  if (!getGasUrl()) return { success: true };
+  return gasWrite('updateDriver', d);
+}
+
+export async function apiDeleteDriver(id: string): Promise<{ success: boolean }> {
+  if (!getGasUrl()) return { success: true };
+  return gasWrite('deleteDriver', undefined, { id });
+}
+
+// ── 運行記録 ────────────────────────────────────────────────
+
+export async function apiGetOperationRecords(filters?: { vehicleId?: string; driverId?: string }): Promise<OperationRecord[]> {
+  if (!getGasUrl()) {
+    let r = [...MOCK_DATA.operationRecords];
+    if (filters?.vehicleId) r = r.filter(x => x['車両ID'] === filters.vehicleId);
+    if (filters?.driverId) r = r.filter(x => x['ドライバーID'] === filters.driverId);
+    return r;
+  }
+  const extra: Record<string, string> = {};
+  if (filters?.vehicleId) extra.vehicleId = filters.vehicleId;
+  if (filters?.driverId) extra.driverId = filters.driverId;
+  return gasGet<OperationRecord[]>('operationRecords', Object.keys(extra).length ? extra : undefined);
+}
+
+export async function apiAddOperationRecord(
+  r: Omit<OperationRecord, '記録ID' | '走行距離(km)'>,
+): Promise<{ success: boolean; id: string }> {
+  if (!getGasUrl()) return { success: true, id: 'R' + Date.now() };
+  return gasWrite('addOperationRecord', r);
+}
+
+export async function apiDeleteOperationRecord(id: string): Promise<{ success: boolean }> {
+  if (!getGasUrl()) return { success: true };
+  return gasWrite('deleteOperationRecord', undefined, { id });
 }

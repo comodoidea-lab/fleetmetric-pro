@@ -1,6 +1,9 @@
 import { NavLink, useNavigate } from 'react-router-dom';
+import { useMultiDriverMode } from '../hooks/useMultiDriverMode';
 
-const NAV_ITEMS = [
+type NavItem = { to: string; icon: string; label: string; fillActive?: boolean };
+
+const NAV_BASE: NavItem[] = [
   { to: '/', icon: 'dashboard', label: 'ダッシュボード', fillActive: true },
   { to: '/vehicles', icon: 'directions_car', label: '車両一覧' },
   { to: '/maintenance', icon: 'build', label: 'メンテナンス' },
@@ -9,8 +12,21 @@ const NAV_ITEMS = [
   { to: '/reports', icon: 'bar_chart', label: 'レポート' },
 ];
 
+const NAV_DRIVER_EXTRA: NavItem[] = [
+  { to: '/drivers', icon: 'badge', label: 'ドライバー' },
+  { to: '/operations', icon: 'route', label: '運行記録' },
+];
+
 export function Sidebar() {
   const navigate = useNavigate();
+  const { multiDriverMode } = useMultiDriverMode();
+  const NAV_ITEMS: NavItem[] = multiDriverMode
+    ? [
+        ...NAV_BASE.slice(0, 2),
+        ...NAV_DRIVER_EXTRA,
+        ...NAV_BASE.slice(2),
+      ]
+    : NAV_BASE;
 
   return (
     <aside className="hidden lg:flex flex-col py-6 px-4 gap-2 h-screen w-64 fixed left-0 top-16 bg-surface-container-low z-40 overflow-y-auto">

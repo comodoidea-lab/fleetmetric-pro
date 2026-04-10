@@ -6,6 +6,7 @@ import { useStore } from '../store/store';
 import { getGasUrl, clearGasUrl, isSkipAuth, saveGasUrlToFirestore } from '../config';
 import { apiInitSheets } from '../api/gasApi';
 import { useTheme, THEMES } from '../hooks/useTheme';
+import { useMultiDriverMode } from '../hooks/useMultiDriverMode';
 import { DialogModal } from '../components/DialogModal';
 import { ManualModal } from '../components/ManualModal';
 import { useGasUpdateContext } from '../context/GasUpdateModalContext';
@@ -64,6 +65,7 @@ export function Settings() {
   const { loadAll } = useStore();
   const { openGasUpdateModal, needsGasUpdate, gasUpdateLoading } = useGasUpdateContext();
   const { theme, setTheme } = useTheme();
+  const { multiDriverMode, setMultiDriverMode } = useMultiDriverMode();
   const firebaseUser = auth.currentUser;
   const skipAuth = isSkipAuth();
 
@@ -136,6 +138,35 @@ export function Settings() {
               </button>
             ))}
           </div>
+        </div>
+      </Section>
+
+      <Section title="表示">
+        <div className="flex items-center gap-3 px-4 py-3.5">
+          <span className="material-symbols-outlined flex-shrink-0 text-primary" style={{ fontSize: 20 }}>
+            group
+          </span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold font-label">複数ドライバーモード</p>
+            <p className="text-xs font-label text-on-surface-variant mt-0.5">
+              ONにするとドライバー管理・運行記録のメニューを表示します
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={multiDriverMode}
+            onClick={() => setMultiDriverMode(!multiDriverMode)}
+            className={`relative w-12 h-7 rounded-full transition-colors flex-shrink-0 ${
+              multiDriverMode ? 'bg-primary' : 'bg-outline-variant/70'
+            }`}
+          >
+            <span
+              className={`absolute top-1 left-1 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                multiDriverMode ? 'translate-x-5' : ''
+              }`}
+            />
+          </button>
         </div>
       </Section>
 

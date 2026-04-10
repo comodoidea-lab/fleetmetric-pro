@@ -10,6 +10,8 @@ import { Maintenance } from './pages/Maintenance';
 import { FuelRecords } from './pages/FuelRecords';
 import { Accidents } from './pages/Accidents';
 import { Reports } from './pages/Reports';
+import { Drivers } from './pages/Drivers';
+import { OperationRecords } from './pages/OperationRecords';
 import { Settings } from './pages/Settings';
 import { Setup } from './pages/Setup';
 import { GasUpdatePage } from './pages/GasUpdatePage';
@@ -117,6 +119,8 @@ function AppRoutes() {
           <Route path="/fuel" element={<FuelRecords />} />
           <Route path="/accidents" element={<Accidents />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/drivers" element={<Drivers />} />
+          <Route path="/operations" element={<OperationRecords />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/gas-update" element={<GasUpdatePage />} />
         </Routes>
