@@ -108,10 +108,7 @@ export function Dashboard() {
               </div>
             ) : (
               dashboard.alerts.map((a, i) => (
-                <div
-                  key={i}
-                  className={`px-4 py-3 border-l-4 ${a.type === 'danger' ? 'border-l-error' : 'border-l-secondary'}`}
-                >
+                <div key={i} className={`px-4 py-3 border-l-4 ${a.type === 'danger' ? 'border-l-error' : 'border-l-secondary'}`}>
                   <div className="flex items-center gap-2 mb-1">
                     <AlertBadge type={a.type} />
                     <span className="text-xs font-label text-on-surface-variant">{a.category}</span>

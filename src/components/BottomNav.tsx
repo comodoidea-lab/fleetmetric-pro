@@ -86,11 +86,11 @@ export function BottomNav() {
             ))}
           </div>
 
-          <div className="relative flex w-[76px] shrink-0 flex-col items-center justify-end pb-1.5">
+          <div className="relative flex w-[76px] shrink-0 items-end justify-center">
             <button
               type="button"
               onClick={() => setModalOpen(true)}
-              className={`absolute -top-5 left-1/2 z-10 flex size-14 shrink-0 -translate-x-1/2 items-center justify-center overflow-hidden rounded-[50%] p-0 shadow-lg shadow-black/20 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+              className={`absolute -top-4 left-1/2 z-10 flex h-16 w-16 min-h-16 min-w-16 shrink-0 -translate-x-1/2 aspect-square flex-col items-center justify-center gap-0.5 overflow-hidden rounded-full p-0 shadow-lg shadow-black/20 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
                 onRecordSection || modalOpen
                   ? 'bg-primary text-on-primary ring-2 ring-primary/30 ring-offset-2 ring-offset-surface-container-lowest'
                   : 'bg-primary text-on-primary hover:bg-primary/90 active:scale-[0.98]'
@@ -98,24 +98,19 @@ export function BottomNav() {
               aria-expanded={modalOpen}
               aria-haspopup="dialog"
               aria-label="記録メニューを開く"
+              style={{ borderRadius: '9999px' }}
             >
               <span
                 className="material-symbols-outlined"
                 style={{
-                  fontSize: 26,
+                  fontSize: 22,
                   fontVariationSettings: onRecordSection || modalOpen ? "'FILL' 1" : "'FILL' 0",
                 }}
               >
                 edit_note
               </span>
+              <span className="text-[10px] font-label font-semibold leading-none tracking-wide">記録</span>
             </button>
-            <span
-              className={`text-[9px] font-label font-medium leading-none text-center ${
-                onRecordSection || modalOpen ? 'text-primary' : 'text-on-surface-variant'
-              }`}
-            >
-              記録
-            </span>
           </div>
 
           <div className="flex flex-1 min-w-0">
