@@ -9,16 +9,12 @@ import { AccidentForm } from '../components/forms/AccidentForm';
 
 function MetricCard({ label, value, icon, accent }: { label: string; value: string | number; icon: string; accent?: string }) {
   return (
-    <div
-      className={`min-h-[118px] bg-surface-container-lowest rounded-2xl px-4 py-4 shadow-sm border border-outline-variant/15 ${
-        accent ? `border-l-4 ${accent}` : ''
-      }`}
-    >
-      <div className="flex items-center justify-between mb-4">
-        <span className="text-sm font-headline font-bold text-on-surface-variant">{label}</span>
-        <span className="material-symbols-outlined text-primary-fixed-dim/80" style={{ fontSize: 20 }}>{icon}</span>
+    <div className={`bg-surface-container-lowest rounded-xl p-5 shadow-sm ${accent ? `border-l-4 ${accent}` : ''}`}>
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-xs font-label uppercase tracking-wider text-on-surface-variant">{label}</span>
+        <span className="material-symbols-outlined text-primary-fixed-dim" style={{ fontSize: 18 }}>{icon}</span>
       </div>
-      <p className="text-5xl leading-none font-headline font-bold text-on-surface">{value}</p>
+      <p className="text-3xl font-headline font-bold text-on-surface">{value}</p>
     </div>
   );
 }
@@ -38,11 +34,11 @@ export function Dashboard() {
   const maintCount = vehicles.filter(v => v['ステータス'] === '整備中').length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-[42px] leading-[1.05] font-headline font-bold text-on-surface">ダッシュボード</h1>
-        <p className="text-xl font-headline text-on-surface-variant mt-1.5">
+        <h1 className="text-2xl font-headline font-bold text-on-surface">ダッシュボード</h1>
+        <p className="text-sm font-label text-on-surface-variant mt-1">
           {new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}
           {!getGasUrl() && <span className="ml-2 text-secondary font-semibold">（デモデータ表示中）</span>}
         </p>
@@ -68,7 +64,7 @@ export function Dashboard() {
       )}
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {dashboard ? (
           <>
             <MetricCard label="総車両数" value={dashboard.vehicleCount} icon="directions_car" />
@@ -86,15 +82,15 @@ export function Dashboard() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Alerts */}
-        <div className="lg:col-span-1 bg-surface-container-lowest rounded-2xl border border-outline-variant/15 shadow-sm overflow-hidden">
+        <div className="lg:col-span-1 bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-outline-variant/20">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-error" style={{ fontSize: 18 }}>warning</span>
-              <h2 className="font-headline font-bold text-2xl leading-none text-on-surface">期限アラート</h2>
+              <h2 className="font-headline font-bold text-sm text-on-surface">期限アラート</h2>
               {dashboard?.alerts.length ? (
-                <span className="ml-auto bg-error-container/70 text-on-error-container text-sm font-bold px-3 py-1 rounded-full">
+                <span className="ml-auto bg-error-container text-on-error-container text-xs font-bold px-2 py-0.5 rounded-full">
                   {dashboard.alerts.length}件
                 </span>
               ) : null}
@@ -115,10 +111,10 @@ export function Dashboard() {
                 <div key={i} className={`px-4 py-3 border-l-4 ${a.type === 'danger' ? 'border-l-error' : 'border-l-secondary'}`}>
                   <div className="flex items-center gap-2 mb-1">
                     <AlertBadge type={a.type} />
-                    <span className="text-xs font-headline text-on-surface-variant">{a.category}</span>
+                    <span className="text-xs font-label text-on-surface-variant">{a.category}</span>
                   </div>
-                  <p className="text-xl leading-tight font-headline font-bold text-on-surface">{a.vehicleName}</p>
-                  <p className="text-sm text-on-surface-variant">{a.plateNumber} — {a.message}</p>
+                  <p className="text-sm font-semibold text-on-surface">{a.vehicleName}</p>
+                  <p className="text-xs text-on-surface-variant">{a.plateNumber} — {a.message}</p>
                 </div>
               ))
             )}
