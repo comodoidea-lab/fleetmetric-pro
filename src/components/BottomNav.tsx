@@ -90,7 +90,7 @@ export function BottomNav() {
             <button
               type="button"
               onClick={() => setModalOpen(true)}
-              className={`absolute -top-5 left-1/2 z-10 flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-full shadow-lg shadow-black/20 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+              className={`absolute -top-5 left-1/2 z-10 flex size-14 shrink-0 -translate-x-1/2 items-center justify-center overflow-hidden rounded-[50%] p-0 shadow-lg shadow-black/20 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
                 onRecordSection || modalOpen
                   ? 'bg-primary text-on-primary ring-2 ring-primary/30 ring-offset-2 ring-offset-surface-container-lowest'
                   : 'bg-primary text-on-primary hover:bg-primary/90 active:scale-[0.98]'
