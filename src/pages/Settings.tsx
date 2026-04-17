@@ -10,13 +10,6 @@ import { useMultiDriverMode } from '../hooks/useMultiDriverMode';
 import { DialogModal } from '../components/DialogModal';
 import { ManualModal } from '../components/ManualModal';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const env = (import.meta as any).env ?? {};
-const ADMIN_EMAILS = String(env.VITE_ADMIN_EMAILS || '')
-  .split(',')
-  .map((x: string) => x.trim().toLowerCase())
-  .filter(Boolean);
-
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm">
@@ -80,9 +73,6 @@ export function Settings() {
   const [restoreBusy, setRestoreBusy] = useState(false);
   const [restoreResult, setRestoreResult] = useState<LegacyRestoreResult | null>(null);
   const [restoreError, setRestoreError] = useState('');
-
-  const isAdmin = skipAuth
-    || (firebaseUser?.email ? ADMIN_EMAILS.includes(firebaseUser.email.toLowerCase()) : false);
 
   async function doLogout() {
     if (!skipAuth) await signOut(auth);
@@ -211,60 +201,62 @@ export function Settings() {
         />
       </Section>
 
-      {isAdmin && (
-        <Section title="管理者メンテナンス">
-          <div className="px-4 py-4 space-y-3">
-            <p className="text-xs font-label text-on-surface-variant leading-relaxed">
-              旧スプレッドシートから Firestore へ復旧を実行します。初回のみ実行してください。
-            </p>
-            <div>
-              <label className="text-xs font-label uppercase tracking-wider text-on-surface-variant mb-1.5 block">
-                復旧元スプレッドシートID
-              </label>
-              <input
-                type="text"
-                value={legacySpreadsheetId}
-                onChange={(e) => setLegacySpreadsheetId(e.target.value)}
-                placeholder="1AbCdEf...（URLの /d/ と /edit の間）"
-                className="w-full px-3 py-2.5 bg-surface-container-low rounded-xl text-sm font-label focus:outline-none focus:ring-2 focus:ring-surface-tint/30 placeholder:text-on-surface-variant"
-              />
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => void runRestore(true)}
-                disabled={restoreBusy}
-                className="flex-1 py-2.5 rounded-full text-xs font-label font-semibold border border-outline-variant text-on-surface hover:bg-surface-container transition-colors disabled:opacity-60"
-              >
-                ドライラン実行
-              </button>
-              <button
-                type="button"
-                onClick={() => void runRestore(false)}
-                disabled={restoreBusy}
-                className="flex-1 py-2.5 rounded-full text-xs font-label font-semibold bg-primary text-on-primary hover:bg-primary/90 transition-colors disabled:opacity-60"
-              >
-                {restoreBusy ? '実行中...' : '復旧を実行'}
-              </button>
-            </div>
-            {restoreError && (
-              <p className="text-xs font-label text-error bg-error-container/30 rounded-lg px-3 py-2">
-                {restoreError}
-              </p>
-            )}
-            {restoreResult && (
-              <div className="text-xs font-label text-on-surface-variant bg-surface-container rounded-xl px-3 py-2 space-y-1">
-                <p className="font-semibold text-on-surface">{restoreResult.message}</p>
-                {restoreResult.summary.map((item) => (
-                  <p key={item.collection}>
-                    {item.sheetName}: {item.rows} 件（重複スキップ {item.duplicates} 件）
-                  </p>
-                ))}
-              </div>
-            )}
+      <Section title="データ復旧（旧スプレッドシート）">
+        <div className="px-4 py-4 space-y-3">
+          <p className="text-xs font-label text-on-surface-variant leading-relaxed">
+            あなたの旧スプレッドシートから Firestore へ復旧します。URLの
+            {' '}
+            <span className="font-semibold text-on-surface">/d/ と /edit の間</span>
+            {' '}
+            のIDを入力してください。
+          </p>
+          <div>
+            <label className="text-xs font-label uppercase tracking-wider text-on-surface-variant mb-1.5 block">
+              復旧元スプレッドシートID
+            </label>
+            <input
+              type="text"
+              value={legacySpreadsheetId}
+              onChange={(e) => setLegacySpreadsheetId(e.target.value)}
+              placeholder="1AbCdEf...（URLの /d/ と /edit の間）"
+              className="w-full px-3 py-2.5 bg-surface-container-low rounded-xl text-sm font-label focus:outline-none focus:ring-2 focus:ring-surface-tint/30 placeholder:text-on-surface-variant"
+            />
           </div>
-        </Section>
-      )}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => void runRestore(true)}
+              disabled={restoreBusy}
+              className="flex-1 py-2.5 rounded-full text-xs font-label font-semibold border border-outline-variant text-on-surface hover:bg-surface-container transition-colors disabled:opacity-60"
+            >
+              ドライラン実行
+            </button>
+            <button
+              type="button"
+              onClick={() => void runRestore(false)}
+              disabled={restoreBusy}
+              className="flex-1 py-2.5 rounded-full text-xs font-label font-semibold bg-primary text-on-primary hover:bg-primary/90 transition-colors disabled:opacity-60"
+            >
+              {restoreBusy ? '実行中...' : '復旧を実行'}
+            </button>
+          </div>
+          {restoreError && (
+            <p className="text-xs font-label text-error bg-error-container/30 rounded-lg px-3 py-2">
+              {restoreError}
+            </p>
+          )}
+          {restoreResult && (
+            <div className="text-xs font-label text-on-surface-variant bg-surface-container rounded-xl px-3 py-2 space-y-1">
+              <p className="font-semibold text-on-surface">{restoreResult.message}</p>
+              {restoreResult.summary.map((item) => (
+                <p key={item.collection}>
+                  {item.sheetName}: {item.rows} 件（重複スキップ {item.duplicates} 件）
+                </p>
+              ))}
+            </div>
+          )}
+        </div>
+      </Section>
 
       {/* Help */}
       <Section title="ヘルプ">

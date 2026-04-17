@@ -43,16 +43,6 @@ function normalizeCell(value: unknown): string | number {
   return String(value);
 }
 
-function parseAdminEmails(): Set<string> {
-  const raw = process.env.ADMIN_EMAILS || '';
-  return new Set(
-    raw
-      .split(',')
-      .map((x) => x.trim().toLowerCase())
-      .filter(Boolean),
-  );
-}
-
 async function getSheetRows(spreadsheetId: string, range: string): Promise<unknown[][]> {
   const auth = new google.auth.GoogleAuth({
     scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
@@ -166,10 +156,7 @@ export const runLegacySpreadsheetRestore = onCall({ region: 'asia-northeast1' },
   }
 
   const callerEmail = String(req.auth.token.email || '').toLowerCase();
-  const admins = parseAdminEmails();
-  if (admins.size > 0 && !admins.has(callerEmail)) {
-    throw new HttpsError('permission-denied', '管理者のみ実行できます。');
-  }
+  const callerUid = String(req.auth.uid || '');
 
   const spreadsheetId = String(req.data?.spreadsheetId || '').trim();
   const dryRun = Boolean(req.data?.dryRun);
@@ -236,6 +223,16 @@ export const runLegacySpreadsheetRestore = onCall({ region: 'asia-northeast1' },
       });
     }
 
+    await db.collection('restoreRuns').add({
+      uid: callerUid,
+      email: callerEmail,
+      spreadsheetId,
+      dryRun,
+      summary,
+      status: 'success',
+      createdAt: new Date().toISOString(),
+    });
+
     return {
       success: true,
       dryRun,
@@ -245,6 +242,15 @@ export const runLegacySpreadsheetRestore = onCall({ region: 'asia-northeast1' },
         : '復旧処理が完了しました。',
     };
   } catch (error) {
+    await db.collection('restoreRuns').add({
+      uid: callerUid,
+      email: callerEmail,
+      spreadsheetId,
+      dryRun,
+      status: 'error',
+      error: error instanceof Error ? error.message : String(error),
+      createdAt: new Date().toISOString(),
+    });
     const msg = error instanceof Error ? error.message : '復旧処理で不明なエラーが発生しました。';
     throw new HttpsError('internal', `復旧に失敗しました: ${msg}`);
   }
