@@ -1,13 +1,11 @@
 // ============================================================
 // FleetMetric Pro - Configuration
 // ============================================================
-// GAS URL の優先順位（開発バイパス時）:
-//   1. localStorage（isSkipAuth() 時のみ使用）
-//   2. 環境変数 VITE_GAS_URL（開発者向け）
-// 通常時: Firestore に保存・取得
+// Firebase移行後は、クライアント設定のみを管理する。
 
 import { db } from './firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
+import type { AppUserSettings } from './types/firestore';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const env = (import.meta as any).env ?? {};
@@ -18,26 +16,7 @@ export function isSkipAuth(): boolean {
   return (env.VITE_SKIP_AUTH as string) === 'true';
 }
 
-// ── GAS URL（開発バイパス用・localStorageベース） ────────────
-const GAS_URL_STORAGE_KEY   = 'fleetmetric_gas_url';
 const DOMAIN_STORAGE_KEY    = 'fleetmetric_allowed_domain';
-const envUrl = (env.VITE_GAS_URL as string) || '';
-
-export function getGasUrl(): string {
-  return localStorage.getItem(GAS_URL_STORAGE_KEY) || envUrl;
-}
-
-export function setGasUrl(url: string): void {
-  localStorage.setItem(GAS_URL_STORAGE_KEY, url.trim());
-}
-
-export function clearGasUrl(): void {
-  localStorage.removeItem(GAS_URL_STORAGE_KEY);
-}
-
-export function isSetupComplete(): boolean {
-  return !!getGasUrl();
-}
 
 // ── Allowed Domain（env / localStorage） ─────────────────────
 export function getAllowedDomain(): string {
@@ -52,22 +31,16 @@ export function setAllowedDomain(domain: string): void {
   }
 }
 
-// ── Firestore（通常時のGAS URL管理） ─────────────────────────
-interface UserSettings {
-  gasUrl: string;
-  allowedDomain?: string;
-}
-
 function userSettingsRef(uid: string) {
   return doc(db, 'users', uid, 'settings', 'app');
 }
 
-export async function getGasUrlFromFirestore(uid: string): Promise<string> {
+export async function getAllowedDomainFromFirestore(uid: string): Promise<string> {
   try {
     const snap = await getDoc(userSettingsRef(uid));
     if (snap.exists()) {
-      const data = snap.data() as UserSettings;
-      return data.gasUrl || '';
+      const data = snap.data() as AppUserSettings;
+      return data.allowedDomain || '';
     }
     return '';
   } catch {
@@ -75,18 +48,16 @@ export async function getGasUrlFromFirestore(uid: string): Promise<string> {
   }
 }
 
-export async function saveGasUrlToFirestore(
+export async function saveAllowedDomainToFirestore(
   uid: string,
-  gasUrl: string,
-  allowedDomain?: string
+  allowedDomain: string,
 ): Promise<void> {
-  const data: UserSettings = { gasUrl: gasUrl.trim() };
-  if (allowedDomain !== undefined) {
-    data.allowedDomain = allowedDomain.trim().toLowerCase();
-  }
-  await setDoc(userSettingsRef(uid), data, { merge: true });
+  const data: AppUserSettings = {
+    allowedDomain: allowedDomain.trim().toLowerCase(),
+  };
+  await setDoc(
+    userSettingsRef(uid),
+    { ...data, updatedAt: serverTimestamp() },
+    { merge: true },
+  );
 }
-
-// ── 後方互換（既存コードで使用） ──────────────────────────────
-export const GAS_URL = getGasUrl();
-export const USE_MOCK_DATA = !GAS_URL;

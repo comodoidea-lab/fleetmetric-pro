@@ -4,6 +4,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { getFunctions } from 'firebase/functions';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const env = (import.meta as any).env ?? {};
@@ -39,3 +40,4 @@ const resolvedConfig = (isFirebaseConfigured && !skipAuth) ? firebaseConfig : {
 const app  = initializeApp(resolvedConfig);
 export const auth = getAuth(app);
 export const db   = getFirestore(app);
+export const fn   = getFunctions(app, 'asia-northeast1');

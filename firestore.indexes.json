@@ -1,0 +1,61 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "maintenanceRecords",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "車両ID",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "日付",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "fuelRecords",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "車両ID",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "日付",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "accidentRecords",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "車両ID",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "日付",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "operationRecords",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "車両ID",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "ドライバーID",
+          "order": "ASCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

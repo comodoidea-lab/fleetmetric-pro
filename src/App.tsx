@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase';
 import { Layout } from './components/Layout';
 import { Dashboard } from './pages/Dashboard';
@@ -13,24 +13,20 @@ import { Reports } from './pages/Reports';
 import { Drivers } from './pages/Drivers';
 import { OperationRecords } from './pages/OperationRecords';
 import { Settings } from './pages/Settings';
-import { Setup } from './pages/Setup';
-import { GasUpdatePage } from './pages/GasUpdatePage';
 import { Login } from './pages/Login';
-import { GasUpdateModalProvider } from './context/GasUpdateModalContext';
 import { useStore } from './store/store';
-import { isSkipAuth, isSetupComplete, getGasUrlFromFirestore, setGasUrl } from './config';
+import { isSkipAuth } from './config';
 
 // アプリ全体の状態
-type AppState = 'loading' | 'login' | 'setup' | 'app';
+type AppState = 'loading' | 'login' | 'app';
 
 function AppRoutes() {
   const { loadAll } = useStore();
   const [appState, setAppState] = useState<AppState>('loading');
-  const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
 
   useEffect(() => {
     // 開発バイパスモード（VITE_SKIP_AUTH=true）
-    // GAS URL 未設定でもモックデータでアプリ画面を直接表示
+    // 認証を省略してアプリ画面を直接表示
     if (isSkipAuth()) {
       setAppState('app');
       return;
@@ -45,25 +41,10 @@ function AppRoutes() {
 
       if (!user) {
         setAppState('login');
-        setFirebaseUser(null);
         return;
       }
 
-      setFirebaseUser(user);
-
-      // Firestore から GAS URL を取得（5秒タイムアウト付き）
-      const gasUrl = await Promise.race([
-        getGasUrlFromFirestore(user.uid),
-        new Promise<string>((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
-      ]).catch(() => '');
-
-      if (gasUrl) {
-        // localStorageにも反映（gasApi.ts が参照するため）
-        setGasUrl(gasUrl);
-        setAppState('app');
-      } else {
-        setAppState('setup');
-      }
+      setAppState('app');
     });
 
     return () => {
@@ -97,35 +78,22 @@ function AppRoutes() {
     return <Login onComplete={() => { /* onAuthStateChanged が自動的に次の状態へ遷移 */ }} />;
   }
 
-  // ③ セットアップ
-  if (appState === 'setup') {
-    return (
-      <Setup
-        firebaseUser={firebaseUser}
-        onComplete={() => setAppState('app')}
-      />
-    );
-  }
-
-  // ④ メインアプリ
+  // ③ メインアプリ
   return (
-    <GasUpdateModalProvider>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/vehicles" element={<Vehicles />} />
-          <Route path="/vehicles/:id" element={<VehicleDetail />} />
-          <Route path="/maintenance" element={<Maintenance />} />
-          <Route path="/fuel" element={<FuelRecords />} />
-          <Route path="/accidents" element={<Accidents />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/drivers" element={<Drivers />} />
-          <Route path="/operations" element={<OperationRecords />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/gas-update" element={<GasUpdatePage />} />
-        </Routes>
-      </Layout>
-    </GasUpdateModalProvider>
+    <Layout>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/vehicles" element={<Vehicles />} />
+        <Route path="/vehicles/:id" element={<VehicleDetail />} />
+        <Route path="/maintenance" element={<Maintenance />} />
+        <Route path="/fuel" element={<FuelRecords />} />
+        <Route path="/accidents" element={<Accidents />} />
+        <Route path="/reports" element={<Reports />} />
+        <Route path="/drivers" element={<Drivers />} />
+        <Route path="/operations" element={<OperationRecords />} />
+        <Route path="/settings" element={<Settings />} />
+      </Routes>
+    </Layout>
   );
 }
 
