@@ -5,11 +5,11 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "車両ID",
+          "fieldPath": "`車両ID`",
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "日付",
+          "fieldPath": "`日付`",
           "order": "DESCENDING"
         }
       ]
@@ -19,11 +19,11 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "車両ID",
+          "fieldPath": "`車両ID`",
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "日付",
+          "fieldPath": "`日付`",
           "order": "DESCENDING"
         }
       ]
@@ -33,11 +33,11 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "車両ID",
+          "fieldPath": "`車両ID`",
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "日付",
+          "fieldPath": "`日付`",
           "order": "DESCENDING"
         }
       ]
@@ -47,11 +47,11 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "車両ID",
+          "fieldPath": "`車両ID`",
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "ドライバーID",
+          "fieldPath": "`ドライバーID`",
           "order": "ASCENDING"
         }
       ]
