@@ -10,6 +10,9 @@ import { useMultiDriverMode } from '../hooks/useMultiDriverMode';
 import { DialogModal } from '../components/DialogModal';
 import { ManualModal } from '../components/ManualModal';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const env = (import.meta as any).env ?? {};
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm">
@@ -74,6 +77,7 @@ export function Settings() {
   const { multiDriverMode, setMultiDriverMode } = useMultiDriverMode();
   const firebaseUser = auth.currentUser;
   const skipAuth = isSkipAuth();
+  const showRestoreSection = skipAuth || String(env.VITE_ENABLE_RESTORE || 'false') === 'true';
 
   const [showManual, setShowManual] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -164,16 +168,16 @@ export function Settings() {
 
   function exportCsv(label: string, rows: Array<Record<string, unknown>>, filename: string) {
     if (rows.length === 0) {
-      setCsvMessage(`${label} のデータはありません。`);
+      setCsvMessage(`${label} はデータがないため出力をスキップしました。`);
       return;
     }
     downloadCsv(filename, rows);
-    setCsvMessage(`${label} をCSVで出力しました。`);
   }
 
   function exportAllCsv() {
     const now = new Date();
     const stamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+    setCsvMessage('CSV出力を開始しました。複数ファイルが順番にダウンロードされます。');
     exportCsv('車両', toCsvRows(vehicles), `fleetmetric_vehicles_${stamp}.csv`);
     setTimeout(() => exportCsv('メンテナンス', toCsvRows(maintenance), `fleetmetric_maintenance_${stamp}.csv`), 80);
     setTimeout(() => exportCsv('給油', toCsvRows(fuel), `fleetmetric_fuel_${stamp}.csv`), 160);
@@ -284,52 +288,8 @@ export function Settings() {
       <Section title="CSVエクスポート">
         <div className="px-4 py-4 space-y-3">
           <p className="text-xs font-label text-on-surface-variant leading-relaxed">
-            現在のデータをCSVでダウンロードします。Excelやスプレッドシートに取り込めます。
+            現在のデータをCSVで一括ダウンロードします。Excelやスプレッドシートに取り込めます。
           </p>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => exportCsv('車両', toCsvRows(vehicles), 'fleetmetric_vehicles.csv')}
-              className="py-2.5 rounded-full text-xs font-label font-semibold border border-outline-variant text-on-surface hover:bg-surface-container transition-colors"
-            >
-              車両CSV
-            </button>
-            <button
-              type="button"
-              onClick={() => exportCsv('メンテナンス', toCsvRows(maintenance), 'fleetmetric_maintenance.csv')}
-              className="py-2.5 rounded-full text-xs font-label font-semibold border border-outline-variant text-on-surface hover:bg-surface-container transition-colors"
-            >
-              メンテCSV
-            </button>
-            <button
-              type="button"
-              onClick={() => exportCsv('給油', toCsvRows(fuel), 'fleetmetric_fuel.csv')}
-              className="py-2.5 rounded-full text-xs font-label font-semibold border border-outline-variant text-on-surface hover:bg-surface-container transition-colors"
-            >
-              給油CSV
-            </button>
-            <button
-              type="button"
-              onClick={() => exportCsv('事故・修理', toCsvRows(accidents), 'fleetmetric_accidents.csv')}
-              className="py-2.5 rounded-full text-xs font-label font-semibold border border-outline-variant text-on-surface hover:bg-surface-container transition-colors"
-            >
-              事故CSV
-            </button>
-            <button
-              type="button"
-              onClick={() => exportCsv('ドライバー', toCsvRows(drivers), 'fleetmetric_drivers.csv')}
-              className="py-2.5 rounded-full text-xs font-label font-semibold border border-outline-variant text-on-surface hover:bg-surface-container transition-colors"
-            >
-              ドライバーCSV
-            </button>
-            <button
-              type="button"
-              onClick={() => exportCsv('運行記録', toCsvRows(operationRecords), 'fleetmetric_operations.csv')}
-              className="py-2.5 rounded-full text-xs font-label font-semibold border border-outline-variant text-on-surface hover:bg-surface-container transition-colors"
-            >
-              運行CSV
-            </button>
-          </div>
           <button
             type="button"
             onClick={exportAllCsv}
@@ -345,68 +305,70 @@ export function Settings() {
         </div>
       </Section>
 
-      <Section title="データ復旧（旧スプレッドシート）">
-        <div className="px-4 py-4 space-y-3">
-          <p className="text-xs font-label text-on-surface-variant leading-relaxed">
-            あなたの旧スプレッドシートから Firestore へ復旧します。URLの
-            {' '}
-            <span className="font-semibold text-on-surface">/d/ と /edit の間</span>
-            {' '}
-            のIDを入力してください。
-          </p>
-          <p className="text-xs font-label text-on-surface-variant leading-relaxed">
-            まず「復旧内容を確認」を押してください。確認だけではデータは変更されません。
-          </p>
-          <div>
-            <label className="text-xs font-label uppercase tracking-wider text-on-surface-variant mb-1.5 block">
-              復旧元スプレッドシートID
-            </label>
-            <input
-              type="text"
-              value={legacySpreadsheetId}
-              onChange={(e) => {
-                setLegacySpreadsheetId(e.target.value);
-                setConfirmedSpreadsheetId('');
-              }}
-              placeholder="1AbCdEf...（URLの /d/ と /edit の間）"
-              className="w-full px-3 py-2.5 bg-surface-container-low rounded-xl text-sm font-label focus:outline-none focus:ring-2 focus:ring-surface-tint/30 placeholder:text-on-surface-variant"
-            />
-          </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => void runRestore(true)}
-              disabled={restoreBusy}
-              className="flex-1 py-2.5 rounded-full text-xs font-label font-semibold border border-outline-variant text-on-surface hover:bg-surface-container transition-colors disabled:opacity-60"
-            >
-              復旧内容を確認
-            </button>
-            <button
-              type="button"
-              onClick={() => void runRestore(false)}
-              disabled={restoreBusy || confirmedSpreadsheetId !== legacySpreadsheetId.trim()}
-              className="flex-1 py-2.5 rounded-full text-xs font-label font-semibold bg-primary text-on-primary hover:bg-primary/90 transition-colors disabled:opacity-60"
-            >
-              {restoreBusy ? '実行中...' : 'この内容で復旧する'}
-            </button>
-          </div>
-          {restoreError && (
-            <p className="text-xs font-label text-error bg-error-container/30 rounded-lg px-3 py-2">
-              {restoreError}
+      {showRestoreSection && (
+        <Section title="データ復旧（旧スプレッドシート）">
+          <div className="px-4 py-4 space-y-3">
+            <p className="text-xs font-label text-on-surface-variant leading-relaxed">
+              旧スプレッドシートから Firestore へ復旧します。URLの
+              {' '}
+              <span className="font-semibold text-on-surface">/d/ と /edit の間</span>
+              {' '}
+              のIDを入力してください。
             </p>
-          )}
-          {restoreResult && (
-            <div className="text-xs font-label text-on-surface-variant bg-surface-container rounded-xl px-3 py-2 space-y-1">
-              <p className="font-semibold text-on-surface">{restoreResult.message}</p>
-              {restoreResult.summary.map((item) => (
-                <p key={item.collection}>
-                  {item.sheetName}: {item.rows} 件（重複スキップ {item.duplicates} 件）
-                </p>
-              ))}
+            <p className="text-xs font-label text-on-surface-variant leading-relaxed">
+              まず「復旧内容を確認」を押してください。確認だけではデータは変更されません。
+            </p>
+            <div>
+              <label className="text-xs font-label uppercase tracking-wider text-on-surface-variant mb-1.5 block">
+                復旧元スプレッドシートID
+              </label>
+              <input
+                type="text"
+                value={legacySpreadsheetId}
+                onChange={(e) => {
+                  setLegacySpreadsheetId(e.target.value);
+                  setConfirmedSpreadsheetId('');
+                }}
+                placeholder="1AbCdEf...（URLの /d/ と /edit の間）"
+                className="w-full px-3 py-2.5 bg-surface-container-low rounded-xl text-sm font-label focus:outline-none focus:ring-2 focus:ring-surface-tint/30 placeholder:text-on-surface-variant"
+              />
             </div>
-          )}
-        </div>
-      </Section>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => void runRestore(true)}
+                disabled={restoreBusy}
+                className="flex-1 py-2.5 rounded-full text-xs font-label font-semibold border border-outline-variant text-on-surface hover:bg-surface-container transition-colors disabled:opacity-60"
+              >
+                復旧内容を確認
+              </button>
+              <button
+                type="button"
+                onClick={() => void runRestore(false)}
+                disabled={restoreBusy || confirmedSpreadsheetId !== legacySpreadsheetId.trim()}
+                className="flex-1 py-2.5 rounded-full text-xs font-label font-semibold bg-primary text-on-primary hover:bg-primary/90 transition-colors disabled:opacity-60"
+              >
+                {restoreBusy ? '実行中...' : 'この内容で復旧する'}
+              </button>
+            </div>
+            {restoreError && (
+              <p className="text-xs font-label text-error bg-error-container/30 rounded-lg px-3 py-2">
+                {restoreError}
+              </p>
+            )}
+            {restoreResult && (
+              <div className="text-xs font-label text-on-surface-variant bg-surface-container rounded-xl px-3 py-2 space-y-1">
+                <p className="font-semibold text-on-surface">{restoreResult.message}</p>
+                {restoreResult.summary.map((item) => (
+                  <p key={item.collection}>
+                    {item.sheetName}: {item.rows} 件（重複スキップ {item.duplicates} 件）
+                  </p>
+                ))}
+              </div>
+            )}
+          </div>
+        </Section>
+      )}
 
       {/* Help */}
       <Section title="ヘルプ">
