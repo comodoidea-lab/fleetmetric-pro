@@ -56,7 +56,7 @@ export interface FuelRecord {
   '備考': string;
 }
 
-/** ドライバーマスタ（GAS シート「ドライバーマスタ」） */
+/** ドライバーマスタ */
 export interface Driver {
   'ドライバーID': string;
   '氏名': string;
@@ -66,7 +66,7 @@ export interface Driver {
   '登録日': string;
 }
 
-/** 運行記録（GAS シート「運行記録」） */
+/** 運行記録 */
 export interface OperationRecord {
   '記録ID': string;
   '車両ID': string;

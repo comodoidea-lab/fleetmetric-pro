@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { useStore } from '../store/store';
 import { AlertBadge, StatusBadge } from '../components/StatusBadge';
-import { getGasUrl } from '../config';
-import { useGasUpdateContext } from '../context/GasUpdateModalContext';
 import { MaintenanceForm } from '../components/forms/MaintenanceForm';
 import { FuelForm } from '../components/forms/FuelForm';
 import { AccidentForm } from '../components/forms/AccidentForm';
@@ -25,7 +23,6 @@ function SkeletonCard() {
 
 export function Dashboard() {
   const { dashboard, vehicles, maintenance } = useStore();
-  const { openGasUpdateModal, needsGasUpdate, gasUpdateLoading } = useGasUpdateContext();
   const [showMaintForm, setShowMaintForm] = useState(false);
   const [showFuelForm, setShowFuelForm] = useState(false);
   const [showAccidentForm, setShowAccidentForm] = useState(false);
@@ -40,28 +37,8 @@ export function Dashboard() {
         <h1 className="text-2xl font-headline font-bold text-on-surface">ダッシュボード</h1>
         <p className="text-sm font-label text-on-surface-variant mt-1">
           {new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}
-          {!getGasUrl() && <span className="ml-2 text-secondary font-semibold">（デモデータ表示中）</span>}
         </p>
       </div>
-
-      {!gasUpdateLoading && needsGasUpdate && (
-        <button
-          type="button"
-          onClick={openGasUpdateModal}
-          className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-secondary-container/40 border border-secondary/40 text-left text-on-surface hover:bg-secondary-container/60 transition-colors shadow-sm"
-        >
-          <span className="material-symbols-outlined text-secondary flex-shrink-0" style={{ fontSize: 28 }}>
-            system_update
-          </span>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-headline font-bold">GASスクリプトの更新が必要です</p>
-            <p className="text-xs font-label text-on-surface-variant mt-0.5">
-              タップして手順を表示（デプロイを管理からの更新）
-            </p>
-          </div>
-          <span className="material-symbols-outlined text-on-surface-variant flex-shrink-0">chevron_right</span>
-        </button>
-      )}
 
       {/* Metrics Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

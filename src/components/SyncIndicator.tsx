@@ -1,17 +1,7 @@
 import { useStore } from '../store/store';
-import { getGasUrl } from '../config';
 
 export function SyncIndicator() {
   const { syncStatus, lastSynced } = useStore();
-
-  if (!getGasUrl()) {
-    return (
-      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary-container">
-        <span className="w-1.5 h-1.5 rounded-full bg-on-secondary-container animate-pulse" />
-        <span className="text-xs font-label font-medium text-on-secondary-container">デモモード</span>
-      </div>
-    );
-  }
 
   if (syncStatus === 'syncing') {
     return (

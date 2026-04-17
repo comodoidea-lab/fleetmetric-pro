@@ -3,13 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useStore } from '../store/store';
-import { getGasUrl, clearGasUrl, isSkipAuth, saveGasUrlToFirestore } from '../config';
-import { apiInitSheets } from '../api/gasApi';
+import { isSkipAuth } from '../config';
 import { useTheme, THEMES } from '../hooks/useTheme';
 import { useMultiDriverMode } from '../hooks/useMultiDriverMode';
 import { DialogModal } from '../components/DialogModal';
 import { ManualModal } from '../components/ManualModal';
-import { useGasUpdateContext } from '../context/GasUpdateModalContext';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -63,7 +61,6 @@ function Row({
 export function Settings() {
   const navigate = useNavigate();
   const { loadAll } = useStore();
-  const { openGasUpdateModal, needsGasUpdate, gasUpdateLoading } = useGasUpdateContext();
   const { theme, setTheme } = useTheme();
   const { multiDriverMode, setMultiDriverMode } = useMultiDriverMode();
   const firebaseUser = auth.currentUser;
@@ -71,12 +68,9 @@ export function Settings() {
 
   const [showManual, setShowManual] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [showSetupResetConfirm, setShowSetupResetConfirm] = useState(false);
-  const [showInitSuccess, setShowInitSuccess] = useState(false);
 
   async function doLogout() {
     if (!skipAuth) await signOut(auth);
-    clearGasUrl();
     window.location.reload();
   }
 
@@ -170,50 +164,14 @@ export function Settings() {
         </div>
       </Section>
 
-      {/* GAS connection */}
-      <Section title="GAS接続">
-        <Row
-          icon="link"
-          label="接続URL"
-          desc={getGasUrl() || '未設定（デモモード）'}
-          chevron={false}
-        />
-        {!!getGasUrl() && (
-          <Row
-            icon="table_chart"
-            label="スプレッドシートを初期化"
-            desc="シートのヘッダーを再作成（データは削除されません）"
-            onClick={async () => {
-              await apiInitSheets();
-              setShowInitSuccess(true);
-            }}
-          />
-        )}
+      <Section title="データ">
         <Row
           icon="sync"
           label="データを再同期"
-          desc="スプレッドシートから最新データを取得"
+          desc="Firestoreから最新データを取得"
           onClick={() => loadAll()}
         />
       </Section>
-
-      {/* GAS update (when required) */}
-      {!gasUpdateLoading && needsGasUpdate && (
-        <Section title="アップデート">
-          <Row
-            icon="system_update"
-            label="GASスクリプトをアップデート"
-            desc="ダッシュボードのお知らせと同じ手順です（モーダルで表示）"
-            onClick={openGasUpdateModal}
-          />
-          <Row
-            icon="open_in_new"
-            label="アップデート手順を全画面で見る"
-            desc="コードのコピーと詳細手順"
-            onClick={() => navigate('/gas-update')}
-          />
-        </Section>
-      )}
 
       {/* Help */}
       <Section title="ヘルプ">
@@ -227,13 +185,6 @@ export function Settings() {
       {/* Danger zone */}
       <Section title="アカウント">
         <Row
-          icon="settings_backup_restore"
-          label="セットアップをやり直す"
-          desc="GAS URLをリセットして初回セットアップ画面に戻る"
-          danger
-          onClick={() => setShowSetupResetConfirm(true)}
-        />
-        <Row
           icon="logout"
           label="ログアウト"
           danger
@@ -243,15 +194,6 @@ export function Settings() {
 
       {/* Modals */}
       {showManual && <ManualModal onClose={() => setShowManual(false)} />}
-
-      {showInitSuccess && (
-        <DialogModal
-          variant="info"
-          title="完了"
-          message="シートを初期化しました"
-          onClose={() => setShowInitSuccess(false)}
-        />
-      )}
       {showLogoutConfirm && (
         <DialogModal
           variant="danger"
@@ -260,22 +202,6 @@ export function Settings() {
           confirmLabel="ログアウト"
           onConfirm={doLogout}
           onClose={() => setShowLogoutConfirm(false)}
-        />
-      )}
-      {showSetupResetConfirm && (
-        <DialogModal
-          variant="danger"
-          title="セットアップをやり直す"
-          message={'現在の接続設定がリセットされます。\nよろしいですか？'}
-          confirmLabel="リセットする"
-          onConfirm={async () => {
-            if (!skipAuth && firebaseUser) {
-              await saveGasUrlToFirestore(firebaseUser.uid, '');
-            }
-            clearGasUrl();
-            window.location.reload();
-          }}
-          onClose={() => setShowSetupResetConfirm(false)}
         />
       )}
     </div>
