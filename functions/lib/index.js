@@ -1,11 +1,20 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getStatisticsData = exports.getDashboardData = void 0;
+exports.runLegacySpreadsheetRestore = exports.getStatisticsData = exports.getDashboardData = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const app_1 = require("firebase-admin/app");
 const firestore_1 = require("firebase-admin/firestore");
+const googleapis_1 = require("googleapis");
 (0, app_1.initializeApp)();
 const db = (0, firestore_1.getFirestore)();
+const LEGACY_SHEET_MAP = [
+    { sheetName: '車両マスタ', collection: 'vehicles', idKey: '車両ID' },
+    { sheetName: 'メンテナンス記録', collection: 'maintenanceRecords', idKey: '記録ID' },
+    { sheetName: '給油記録', collection: 'fuelRecords', idKey: '記録ID' },
+    { sheetName: '事故・修理履歴', collection: 'accidentRecords', idKey: '記録ID' },
+    { sheetName: 'ドライバーマスタ', collection: 'drivers', idKey: 'ドライバーID' },
+    { sheetName: '運行記録', collection: 'operationRecords', idKey: '記録ID' },
+];
 function toNumber(value) {
     const num = Number(value);
     return Number.isFinite(num) ? num : 0;
@@ -15,6 +24,34 @@ function toDate(value) {
         return null;
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? null : date;
+}
+function normalizeCell(value) {
+    if (value === undefined || value === null)
+        return '';
+    if (typeof value === 'string')
+        return value.trim();
+    if (typeof value === 'number')
+        return value;
+    return String(value);
+}
+function parseAdminEmails() {
+    const raw = process.env.ADMIN_EMAILS || '';
+    return new Set(raw
+        .split(',')
+        .map((x) => x.trim().toLowerCase())
+        .filter(Boolean));
+}
+async function getSheetRows(spreadsheetId, range) {
+    const auth = new googleapis_1.google.auth.GoogleAuth({
+        scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+    });
+    const sheets = googleapis_1.google.sheets({ version: 'v4', auth });
+    const res = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range,
+        valueRenderOption: 'UNFORMATTED_VALUE',
+    });
+    return res.data.values ?? [];
 }
 exports.getDashboardData = (0, https_1.onCall)({ region: 'asia-northeast1' }, async () => {
     const [vehiclesSnap, maintenanceSnap, fuelSnap] = await Promise.all([
@@ -94,4 +131,82 @@ exports.getStatisticsData = (0, https_1.onCall)({ region: 'asia-northeast1' }, a
         totalMaintCost: maintenance.reduce((sum, x) => sum + toNumber(x['費用(円)']), 0),
         totalAccidentCost: accidents.reduce((sum, x) => sum + toNumber(x['費用(円)']), 0),
     };
+});
+exports.runLegacySpreadsheetRestore = (0, https_1.onCall)({ region: 'asia-northeast1' }, async (req) => {
+    if (!req.auth) {
+        throw new https_1.HttpsError('unauthenticated', 'ログインが必要です。');
+    }
+    const callerEmail = String(req.auth.token.email || '').toLowerCase();
+    const admins = parseAdminEmails();
+    if (admins.size > 0 && !admins.has(callerEmail)) {
+        throw new https_1.HttpsError('permission-denied', '管理者のみ実行できます。');
+    }
+    const spreadsheetId = String(req.data?.spreadsheetId || '').trim();
+    const dryRun = Boolean(req.data?.dryRun);
+    if (!spreadsheetId) {
+        throw new https_1.HttpsError('invalid-argument', 'spreadsheetId は必須です。');
+    }
+    const summary = [];
+    try {
+        for (const target of LEGACY_SHEET_MAP) {
+            const rows = await getSheetRows(spreadsheetId, `${target.sheetName}!A:ZZ`);
+            if (rows.length <= 1) {
+                summary.push({ sheetName: target.sheetName, collection: target.collection, rows: 0, duplicates: 0 });
+                continue;
+            }
+            const headers = rows[0].map((h) => String(h).trim());
+            const body = rows.slice(1);
+            const idSet = new Set();
+            const docs = [];
+            let duplicateCount = 0;
+            for (const row of body) {
+                const record = {};
+                headers.forEach((header, index) => {
+                    record[header] = normalizeCell(row[index]);
+                });
+                const id = String(record[target.idKey] || '').trim();
+                if (!id)
+                    continue;
+                if (idSet.has(id)) {
+                    duplicateCount += 1;
+                    continue;
+                }
+                idSet.add(id);
+                docs.push({ id, data: record });
+            }
+            if (!dryRun && docs.length > 0) {
+                let batch = db.batch();
+                let opCount = 0;
+                for (const item of docs) {
+                    batch.set(db.collection(target.collection).doc(item.id), item.data, { merge: true });
+                    opCount += 1;
+                    if (opCount === 450) {
+                        await batch.commit();
+                        batch = db.batch();
+                        opCount = 0;
+                    }
+                }
+                if (opCount > 0)
+                    await batch.commit();
+            }
+            summary.push({
+                sheetName: target.sheetName,
+                collection: target.collection,
+                rows: docs.length,
+                duplicates: duplicateCount,
+            });
+        }
+        return {
+            success: true,
+            dryRun,
+            summary,
+            message: dryRun
+                ? 'ドライランが完了しました。書き込みは実行していません。'
+                : '復旧処理が完了しました。',
+        };
+    }
+    catch (error) {
+        const msg = error instanceof Error ? error.message : '復旧処理で不明なエラーが発生しました。';
+        throw new https_1.HttpsError('internal', `復旧に失敗しました: ${msg}`);
+    }
 });

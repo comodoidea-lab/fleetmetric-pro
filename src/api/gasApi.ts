@@ -47,6 +47,27 @@ async function callStatisticsFunction(): Promise<Statistics> {
   return res.data as Statistics;
 }
 
+export interface LegacyRestoreResult {
+  success: boolean;
+  dryRun: boolean;
+  message: string;
+  summary: Array<{
+    sheetName: string;
+    collection: string;
+    rows: number;
+    duplicates: number;
+  }>;
+}
+
+export async function apiRunLegacySpreadsheetRestore(
+  spreadsheetId: string,
+  dryRun: boolean,
+): Promise<LegacyRestoreResult> {
+  const callable = httpsCallable(fn, 'runLegacySpreadsheetRestore');
+  const res = await callable({ spreadsheetId, dryRun });
+  return res.data as LegacyRestoreResult;
+}
+
 function deriveDashboardData(
   vehicles: Vehicle[],
   maintenance: MaintenanceRecord[],

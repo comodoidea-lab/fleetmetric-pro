@@ -50,3 +50,12 @@ npm run firebase:deploy:hosting
 - ログイン直後にセットアップ画面が出ないこと
 - 車両/整備/給油/事故/ドライバー/運行記録のCRUDが動作すること
 - ダッシュボードとレポートの集計が表示されること
+
+## 6. 管理者ワンクリック復旧（推奨）
+- Vercel環境変数 `VITE_ADMIN_EMAILS` に管理者メールアドレスをカンマ区切りで設定
+  - 例: `admin@example.com,ops@example.com`
+- 管理者でログインすると、設定画面に「管理者メンテナンス」セクションが表示される
+- 「復旧元スプレッドシートID」を入力して、
+  - 先に「ドライラン実行」
+  - 問題なければ「復旧を実行」
+- 復旧処理は Cloud Functions `runLegacySpreadsheetRestore` が実行するため、エンドユーザーのCLI操作は不要
