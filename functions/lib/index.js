@@ -34,13 +34,6 @@ function normalizeCell(value) {
         return value;
     return String(value);
 }
-function parseAdminEmails() {
-    const raw = process.env.ADMIN_EMAILS || '';
-    return new Set(raw
-        .split(',')
-        .map((x) => x.trim().toLowerCase())
-        .filter(Boolean));
-}
 async function getSheetRows(spreadsheetId, range) {
     const auth = new googleapis_1.google.auth.GoogleAuth({
         scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
@@ -137,10 +130,7 @@ exports.runLegacySpreadsheetRestore = (0, https_1.onCall)({ region: 'asia-northe
         throw new https_1.HttpsError('unauthenticated', 'ログインが必要です。');
     }
     const callerEmail = String(req.auth.token.email || '').toLowerCase();
-    const admins = parseAdminEmails();
-    if (admins.size > 0 && !admins.has(callerEmail)) {
-        throw new https_1.HttpsError('permission-denied', '管理者のみ実行できます。');
-    }
+    const callerUid = String(req.auth.uid || '');
     const spreadsheetId = String(req.data?.spreadsheetId || '').trim();
     const dryRun = Boolean(req.data?.dryRun);
     if (!spreadsheetId) {
@@ -196,6 +186,15 @@ exports.runLegacySpreadsheetRestore = (0, https_1.onCall)({ region: 'asia-northe
                 duplicates: duplicateCount,
             });
         }
+        await db.collection('restoreRuns').add({
+            uid: callerUid,
+            email: callerEmail,
+            spreadsheetId,
+            dryRun,
+            summary,
+            status: 'success',
+            createdAt: new Date().toISOString(),
+        });
         return {
             success: true,
             dryRun,
@@ -206,6 +205,15 @@ exports.runLegacySpreadsheetRestore = (0, https_1.onCall)({ region: 'asia-northe
         };
     }
     catch (error) {
+        await db.collection('restoreRuns').add({
+            uid: callerUid,
+            email: callerEmail,
+            spreadsheetId,
+            dryRun,
+            status: 'error',
+            error: error instanceof Error ? error.message : String(error),
+            createdAt: new Date().toISOString(),
+        });
         const msg = error instanceof Error ? error.message : '復旧処理で不明なエラーが発生しました。';
         throw new https_1.HttpsError('internal', `復旧に失敗しました: ${msg}`);
     }
