@@ -2,16 +2,16 @@ import { useEffect, useState } from 'react';
 import {
   signInWithPopup,
   GoogleAuthProvider,
-  signOut,
 } from 'firebase/auth';
 import { auth, isFirebaseConfigured, firebaseAuthDomain, firebaseProjectId } from '../firebase';
-import { getAllowedDomain } from '../config';
 
 interface Props {
   onComplete: () => void;
+  onDemoStart?: () => void;
+  demoEnabled?: boolean;
 }
 
-export function Login({ onComplete }: Props) {
+export function Login({ onComplete, onDemoStart, demoEnabled = false }: Props) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [networkErrorDetail, setNetworkErrorDetail] = useState(false);
@@ -28,20 +28,7 @@ export function Login({ onComplete }: Props) {
     setError('');
     try {
       const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-
-      // ドメインチェック
-      const email = result.user.email ?? '';
-      const allowedDomain = getAllowedDomain();
-      if (allowedDomain) {
-        const domain = email.split('@')[1];
-        if (domain !== allowedDomain) {
-          await signOut(auth);
-          setError(`このアプリは @${allowedDomain} のアカウントのみ利用できます`);
-          setLoading(false);
-          return;
-        }
-      }
+      await signInWithPopup(auth, provider);
 
       // App.tsx の onAuthStateChanged が自動的に次の状態へ遷移する
       onComplete();
@@ -134,6 +121,16 @@ export function Login({ onComplete }: Props) {
           )}
           {loading ? 'サインイン中...' : 'Googleでサインイン'}
         </button>
+
+        {demoEnabled && (
+          <button
+            type="button"
+            onClick={onDemoStart}
+            className="w-full text-sm font-semibold text-primary hover:text-primary/80 underline underline-offset-2"
+          >
+            デモモードで試す
+          </button>
+        )}
       </div>
 
       <p className="text-xs font-label text-on-surface-variant mt-6 text-center max-w-sm leading-relaxed">

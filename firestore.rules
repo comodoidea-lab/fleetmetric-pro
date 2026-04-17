@@ -5,32 +5,112 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function isMemberOf(orgId) {
+      return isSignedIn()
+        && orgId is string
+        && exists(/databases/$(database)/documents/organizations/$(orgId)/members/$(request.auth.uid));
+    }
+
+    function isAdminOf(orgId) {
+      return isMemberOf(orgId)
+        && get(/databases/$(database)/documents/organizations/$(orgId)/members/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function canReadDataDoc() {
+      return (
+        resource.data.organizationId is string
+        && isMemberOf(resource.data.organizationId)
+      )
+      || (
+        resource.data.ownerUid is string
+        && resource.data.ownerUid == request.auth.uid
+      );
+    }
+
+    function canCreateDataDoc() {
+      return isSignedIn()
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.organizationId is string
+        && isMemberOf(request.resource.data.organizationId);
+    }
+
+    function canUpdateDataDoc() {
+      return (
+        resource.data.organizationId is string
+        && isMemberOf(resource.data.organizationId)
+        && request.resource.data.organizationId == resource.data.organizationId
+        && (
+          resource.data.ownerUid == request.auth.uid
+          || isAdminOf(resource.data.organizationId)
+        )
+      ) || (
+        resource.data.ownerUid is string
+        && resource.data.ownerUid == request.auth.uid
+        && request.resource.data.ownerUid == request.auth.uid
+      );
+    }
+
     match /users/{uid}/{document=**} {
       allow read, write: if isSignedIn() && request.auth.uid == uid;
     }
 
+    match /organizations/{orgId} {
+      allow read: if isMemberOf(orgId);
+      allow write: if false;
+
+      match /members/{memberUid} {
+        allow read: if isMemberOf(orgId);
+        allow write: if false;
+      }
+    }
+
+    match /inviteCodes/{code} {
+      allow read: if isSignedIn()
+        && resource.data.organizationId is string
+        && isAdminOf(resource.data.organizationId);
+      allow write: if false;
+    }
+
     match /vehicles/{docId} {
-      allow read, write: if isSignedIn();
+      allow create: if canCreateDataDoc();
+      allow read: if canReadDataDoc();
+      allow update, delete: if canUpdateDataDoc();
     }
 
     match /maintenanceRecords/{docId} {
-      allow read, write: if isSignedIn();
+      allow create: if canCreateDataDoc();
+      allow read: if canReadDataDoc();
+      allow update, delete: if canUpdateDataDoc();
     }
 
     match /fuelRecords/{docId} {
-      allow read, write: if isSignedIn();
+      allow create: if canCreateDataDoc();
+      allow read: if canReadDataDoc();
+      allow update, delete: if canUpdateDataDoc();
     }
 
     match /accidentRecords/{docId} {
-      allow read, write: if isSignedIn();
+      allow create: if canCreateDataDoc();
+      allow read: if canReadDataDoc();
+      allow update, delete: if canUpdateDataDoc();
     }
 
     match /drivers/{docId} {
-      allow read, write: if isSignedIn();
+      allow create: if canCreateDataDoc();
+      allow read: if canReadDataDoc();
+      allow update, delete: if canUpdateDataDoc();
     }
 
     match /operationRecords/{docId} {
-      allow read, write: if isSignedIn();
+      allow create: if canCreateDataDoc();
+      allow read: if canReadDataDoc();
+      allow update, delete: if canUpdateDataDoc();
+    }
+
+    match /restoreRuns/{docId} {
+      allow create: if canCreateDataDoc();
+      allow read: if canReadDataDoc();
+      allow update, delete: if canUpdateDataDoc();
     }
   }
 }

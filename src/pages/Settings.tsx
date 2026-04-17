@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
@@ -9,6 +9,13 @@ import { useTheme, THEMES } from '../hooks/useTheme';
 import { useMultiDriverMode } from '../hooks/useMultiDriverMode';
 import { DialogModal } from '../components/DialogModal';
 import { ManualModal } from '../components/ManualModal';
+import {
+  getMyOrganizationProfile,
+  getOrganizationById,
+  issueInviteCode,
+  type Organization,
+  type UserOrgProfile,
+} from '../api/organizationApi';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const env = (import.meta as any).env ?? {};
@@ -87,10 +94,60 @@ export function Settings() {
   const [restoreError, setRestoreError] = useState('');
   const [confirmedSpreadsheetId, setConfirmedSpreadsheetId] = useState('');
   const [csvMessage, setCsvMessage] = useState('');
+  const [orgProfile, setOrgProfile] = useState<UserOrgProfile | null>(null);
+  const [organization, setOrganization] = useState<Organization | null>(null);
+  const [orgLoading, setOrgLoading] = useState(false);
+  const [orgError, setOrgError] = useState('');
+  const [inviteBusy, setInviteBusy] = useState(false);
+  const [inviteInfo, setInviteInfo] = useState<{ code: string; expiresAt: string } | null>(null);
 
   async function doLogout() {
     if (!skipAuth) await signOut(auth);
     window.location.reload();
+  }
+
+  useEffect(() => {
+    let mounted = true;
+    async function loadOrganization() {
+      if (!firebaseUser) return;
+      setOrgLoading(true);
+      setOrgError('');
+      try {
+        const profile = await getMyOrganizationProfile();
+        if (!mounted) return;
+        setOrgProfile(profile);
+        if (profile?.organizationId) {
+          const org = await getOrganizationById(profile.organizationId);
+          if (!mounted) return;
+          setOrganization(org);
+        } else {
+          setOrganization(null);
+        }
+      } catch {
+        if (!mounted) return;
+        setOrgError('組織情報の取得に失敗しました。');
+      } finally {
+        if (mounted) setOrgLoading(false);
+      }
+    }
+    void loadOrganization();
+    return () => {
+      mounted = false;
+    };
+  }, [firebaseUser?.uid]);
+
+  async function handleIssueInviteCode() {
+    setInviteBusy(true);
+    setOrgError('');
+    try {
+      const result = await issueInviteCode(7);
+      setInviteInfo({ code: result.code, expiresAt: result.expiresAt });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '招待コードの発行に失敗しました。';
+      setOrgError(message);
+    } finally {
+      setInviteBusy(false);
+    }
   }
 
   async function runRestore(dryRun: boolean) {
@@ -284,6 +341,62 @@ export function Settings() {
           onClick={() => loadAll()}
         />
       </Section>
+
+      {!skipAuth && (
+        <Section title="組織">
+          <div className="px-4 py-4 space-y-3">
+            {orgLoading ? (
+              <p className="text-xs font-label text-on-surface-variant">組織情報を読み込み中...</p>
+            ) : (
+              <>
+                <div className="space-y-1">
+                  <p className="text-xs font-label text-on-surface-variant">組織名</p>
+                  <p className="text-sm font-semibold text-on-surface">{organization?.name ?? '未設定'}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-label text-on-surface-variant">組織ID</p>
+                  <p className="text-xs font-mono text-on-surface break-all">
+                    {orgProfile?.organizationId ?? '未参加'}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-label text-on-surface-variant">あなたの権限</p>
+                  <p className="text-sm font-semibold text-on-surface">
+                    {orgProfile?.role === 'admin' ? '管理者' : orgProfile?.role === 'member' ? 'メンバー' : '未設定'}
+                  </p>
+                </div>
+
+                {orgProfile?.role === 'admin' && (
+                  <div className="pt-2 border-t border-outline-variant/20 space-y-2">
+                    <button
+                      type="button"
+                      onClick={() => void handleIssueInviteCode()}
+                      disabled={inviteBusy}
+                      className="w-full py-2.5 rounded-full text-xs font-label font-semibold bg-primary text-on-primary hover:bg-primary/90 transition-colors disabled:opacity-60"
+                    >
+                      {inviteBusy ? '発行中...' : '6桁の招待コードを発行（7日有効）'}
+                    </button>
+                    {inviteInfo && (
+                      <div className="bg-surface-container rounded-xl px-3 py-2 space-y-1">
+                        <p className="text-xs font-label text-on-surface-variant">最新の招待コード</p>
+                        <p className="text-lg font-bold tracking-[0.2em] text-on-surface">{inviteInfo.code}</p>
+                        <p className="text-xs font-label text-on-surface-variant">
+                          有効期限: {new Date(inviteInfo.expiresAt).toLocaleString('ja-JP')}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+            {orgError && (
+              <p className="text-xs font-label text-error bg-error-container/30 rounded-lg px-3 py-2">
+                {orgError}
+              </p>
+            )}
+          </div>
+        </Section>
+      )}
 
       <Section title="CSVエクスポート">
         <div className="px-4 py-4 space-y-3">

@@ -9,6 +9,8 @@
  * Optional env vars:
  * - FIREBASE_PROJECT_ID: target Firebase project id
  * - DRY_RUN=true: do not write to Firestore
+ * - OWNER_UID: assign all imported docs to this uid (required for app visibility)
+ * - ORGANIZATION_ID: assign docs to this organization (defaults to OWNER_UID)
  */
 
 import fs from 'node:fs';
@@ -52,6 +54,9 @@ async function getSheetRows(authClient, spreadsheetId, range) {
 async function main() {
   const spreadsheetId = process.env.SPREADSHEET_ID;
   if (!spreadsheetId) throw new Error('SPREADSHEET_ID is required');
+  const ownerUid = String(process.env.OWNER_UID || '').trim();
+  if (!ownerUid) throw new Error('OWNER_UID is required');
+  const organizationId = String(process.env.ORGANIZATION_ID || ownerUid).trim().toLowerCase();
   const dryRun = String(process.env.DRY_RUN || '').toLowerCase() === 'true';
 
   const serviceAccount = readServiceAccount();
@@ -85,6 +90,8 @@ async function main() {
       headers.forEach((header, index) => {
         doc[header] = normalizeCell(row[index]);
       });
+      doc.ownerUid = ownerUid;
+      doc.organizationId = organizationId;
       const id = String(doc[target.idKey] || '').trim();
       if (!id) continue;
       if (idSet.has(id)) {

@@ -10,7 +10,8 @@
     "firebase:deploy": "npx -y firebase-tools@latest deploy",
     "firebase:deploy:hosting": "npx -y firebase-tools@latest deploy --only hosting",
     "firebase:deploy:functions": "npx -y firebase-tools@latest deploy --only functions",
-    "migrate:spreadsheet": "node ./scripts/migrate-spreadsheet-to-firestore.mjs"
+    "migrate:spreadsheet": "node ./scripts/migrate-spreadsheet-to-firestore.mjs",
+    "migrate:backfill-org": "node ./scripts/backfill-organization-id.mjs"
   },
   "dependencies": {
     "firebase": "^12.11.0",

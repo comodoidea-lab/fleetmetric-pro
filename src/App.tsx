@@ -14,14 +14,16 @@ import { Drivers } from './pages/Drivers';
 import { OperationRecords } from './pages/OperationRecords';
 import { Settings } from './pages/Settings';
 import { Login } from './pages/Login';
+import { OrganizationOnboarding } from './pages/OrganizationOnboarding';
 import { useStore } from './store/store';
-import { isSkipAuth } from './config';
+import { isDemoEnabled, isSkipAuth } from './config';
+import { getMyOrganizationProfile } from './api/organizationApi';
 
 // アプリ全体の状態
-type AppState = 'loading' | 'login' | 'app';
+type AppState = 'loading' | 'login' | 'onboarding' | 'app' | 'demo';
 
 function AppRoutes() {
-  const { loadAll } = useStore();
+  const { loadAll, enableDemoMode, disableDemoMode } = useStore();
   const [appState, setAppState] = useState<AppState>('loading');
 
   useEffect(() => {
@@ -44,7 +46,12 @@ function AppRoutes() {
         return;
       }
 
-      setAppState('app');
+      try {
+        const profile = await getMyOrganizationProfile();
+        setAppState(profile?.organizationId ? 'app' : 'onboarding');
+      } catch {
+        setAppState('onboarding');
+      }
     });
 
     return () => {
@@ -55,8 +62,9 @@ function AppRoutes() {
 
   // データ自動同期（appになったタイミングで起動）
   useEffect(() => {
-    if (appState !== 'app') return;
+    if (appState !== 'app' && appState !== 'demo') return;
     loadAll();
+    if (appState === 'demo') return;
     const interval = setInterval(() => loadAll(), 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, [appState]);
@@ -75,12 +83,47 @@ function AppRoutes() {
 
   // ② ログイン
   if (appState === 'login') {
-    return <Login onComplete={() => { /* onAuthStateChanged が自動的に次の状態へ遷移 */ }} />;
+    return (
+      <Login
+        onComplete={() => { /* onAuthStateChanged が自動的に次の状態へ遷移 */ }}
+        demoEnabled={isDemoEnabled()}
+        onDemoStart={() => {
+          enableDemoMode();
+          setAppState('demo');
+        }}
+      />
+    );
   }
+
+  if (appState === 'onboarding') {
+    return <OrganizationOnboarding onComplete={() => setAppState('app')} />;
+  }
+
+  const isDemo = appState === 'demo';
 
   // ③ メインアプリ
   return (
     <Layout>
+      {isDemo && (
+        <div className="mb-4 rounded-xl border border-secondary/30 bg-secondary-container/40 px-4 py-3 text-sm text-on-surface">
+          <div className="flex items-center justify-between gap-3">
+            <p>
+              <span className="font-semibold">デモモード</span>
+              {' '}現在の操作はプレビュー専用です。Firebaseの本番データには保存されません。
+            </p>
+            <button
+              type="button"
+              className="shrink-0 rounded-lg border border-outline-variant/60 px-3 py-1.5 text-xs font-semibold hover:bg-surface-container"
+              onClick={() => {
+                disableDemoMode();
+                setAppState('login');
+              }}
+            >
+              ログインへ戻る
+            </button>
+          </div>
+        </div>
+      )}
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/vehicles" element={<Vehicles />} />
