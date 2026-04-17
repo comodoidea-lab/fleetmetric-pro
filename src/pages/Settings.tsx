@@ -73,6 +73,7 @@ export function Settings() {
   const [restoreBusy, setRestoreBusy] = useState(false);
   const [restoreResult, setRestoreResult] = useState<LegacyRestoreResult | null>(null);
   const [restoreError, setRestoreError] = useState('');
+  const [confirmedSpreadsheetId, setConfirmedSpreadsheetId] = useState('');
 
   async function doLogout() {
     if (!skipAuth) await signOut(auth);
@@ -85,12 +86,23 @@ export function Settings() {
       setRestoreError('スプレッドシートIDを入力してください。');
       return;
     }
+
+    if (!dryRun && confirmedSpreadsheetId !== id) {
+      setRestoreError('先に「復旧内容を確認」を実行してください。');
+      return;
+    }
+
     setRestoreBusy(true);
     setRestoreError('');
-    setRestoreResult(null);
+    if (dryRun) {
+      setRestoreResult(null);
+    }
     try {
       const result = await apiRunLegacySpreadsheetRestore(id, dryRun);
       setRestoreResult(result);
+      if (dryRun) {
+        setConfirmedSpreadsheetId(id);
+      }
       if (!dryRun) {
         await loadAll();
       }
@@ -210,6 +222,9 @@ export function Settings() {
             {' '}
             のIDを入力してください。
           </p>
+          <p className="text-xs font-label text-on-surface-variant leading-relaxed">
+            まず「復旧内容を確認」を押してください。確認だけではデータは変更されません。
+          </p>
           <div>
             <label className="text-xs font-label uppercase tracking-wider text-on-surface-variant mb-1.5 block">
               復旧元スプレッドシートID
@@ -217,7 +232,10 @@ export function Settings() {
             <input
               type="text"
               value={legacySpreadsheetId}
-              onChange={(e) => setLegacySpreadsheetId(e.target.value)}
+              onChange={(e) => {
+                setLegacySpreadsheetId(e.target.value);
+                setConfirmedSpreadsheetId('');
+              }}
               placeholder="1AbCdEf...（URLの /d/ と /edit の間）"
               className="w-full px-3 py-2.5 bg-surface-container-low rounded-xl text-sm font-label focus:outline-none focus:ring-2 focus:ring-surface-tint/30 placeholder:text-on-surface-variant"
             />
@@ -229,15 +247,15 @@ export function Settings() {
               disabled={restoreBusy}
               className="flex-1 py-2.5 rounded-full text-xs font-label font-semibold border border-outline-variant text-on-surface hover:bg-surface-container transition-colors disabled:opacity-60"
             >
-              ドライラン実行
+              復旧内容を確認
             </button>
             <button
               type="button"
               onClick={() => void runRestore(false)}
-              disabled={restoreBusy}
+              disabled={restoreBusy || confirmedSpreadsheetId !== legacySpreadsheetId.trim()}
               className="flex-1 py-2.5 rounded-full text-xs font-label font-semibold bg-primary text-on-primary hover:bg-primary/90 transition-colors disabled:opacity-60"
             >
-              {restoreBusy ? '実行中...' : '復旧を実行'}
+              {restoreBusy ? '実行中...' : 'この内容で復旧する'}
             </button>
           </div>
           {restoreError && (
