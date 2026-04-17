@@ -61,7 +61,15 @@ function Row({
 
 export function Settings() {
   const navigate = useNavigate();
-  const { loadAll } = useStore();
+  const {
+    loadAll,
+    vehicles,
+    maintenance,
+    fuel,
+    accidents,
+    drivers,
+    operationRecords,
+  } = useStore();
   const { theme, setTheme } = useTheme();
   const { multiDriverMode, setMultiDriverMode } = useMultiDriverMode();
   const firebaseUser = auth.currentUser;
@@ -74,6 +82,7 @@ export function Settings() {
   const [restoreResult, setRestoreResult] = useState<LegacyRestoreResult | null>(null);
   const [restoreError, setRestoreError] = useState('');
   const [confirmedSpreadsheetId, setConfirmedSpreadsheetId] = useState('');
+  const [csvMessage, setCsvMessage] = useState('');
 
   async function doLogout() {
     if (!skipAuth) await signOut(auth);
@@ -112,6 +121,65 @@ export function Settings() {
     } finally {
       setRestoreBusy(false);
     }
+  }
+
+  function escapeCsvCell(value: unknown): string {
+    if (value === null || value === undefined) return '';
+    const raw = String(value);
+    if (raw.includes('"') || raw.includes(',') || raw.includes('\n')) {
+      return `"${raw.replace(/"/g, '""')}"`;
+    }
+    return raw;
+  }
+
+  function downloadCsv(filename: string, rows: Array<Record<string, unknown>>) {
+    const headers = Array.from(
+      rows.reduce((keys, row) => {
+        Object.keys(row).forEach((key) => keys.add(key));
+        return keys;
+      }, new Set<string>()),
+    );
+
+    const lines: string[] = [];
+    lines.push(headers.map(escapeCsvCell).join(','));
+    rows.forEach((row) => {
+      lines.push(headers.map((h) => escapeCsvCell(row[h])).join(','));
+    });
+
+    const csv = '\uFEFF' + lines.join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function toCsvRows<T>(rows: T[]): Array<Record<string, unknown>> {
+    return rows.map((row) => row as unknown as Record<string, unknown>);
+  }
+
+  function exportCsv(label: string, rows: Array<Record<string, unknown>>, filename: string) {
+    if (rows.length === 0) {
+      setCsvMessage(`${label} のデータはありません。`);
+      return;
+    }
+    downloadCsv(filename, rows);
+    setCsvMessage(`${label} をCSVで出力しました。`);
+  }
+
+  function exportAllCsv() {
+    const now = new Date();
+    const stamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+    exportCsv('車両', toCsvRows(vehicles), `fleetmetric_vehicles_${stamp}.csv`);
+    setTimeout(() => exportCsv('メンテナンス', toCsvRows(maintenance), `fleetmetric_maintenance_${stamp}.csv`), 80);
+    setTimeout(() => exportCsv('給油', toCsvRows(fuel), `fleetmetric_fuel_${stamp}.csv`), 160);
+    setTimeout(() => exportCsv('事故・修理', toCsvRows(accidents), `fleetmetric_accidents_${stamp}.csv`), 240);
+    setTimeout(() => exportCsv('ドライバー', toCsvRows(drivers), `fleetmetric_drivers_${stamp}.csv`), 320);
+    setTimeout(() => exportCsv('運行記録', toCsvRows(operationRecords), `fleetmetric_operations_${stamp}.csv`), 400);
   }
 
   return (
@@ -211,6 +279,70 @@ export function Settings() {
           desc="Firestoreから最新データを取得"
           onClick={() => loadAll()}
         />
+      </Section>
+
+      <Section title="CSVエクスポート">
+        <div className="px-4 py-4 space-y-3">
+          <p className="text-xs font-label text-on-surface-variant leading-relaxed">
+            現在のデータをCSVでダウンロードします。Excelやスプレッドシートに取り込めます。
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => exportCsv('車両', toCsvRows(vehicles), 'fleetmetric_vehicles.csv')}
+              className="py-2.5 rounded-full text-xs font-label font-semibold border border-outline-variant text-on-surface hover:bg-surface-container transition-colors"
+            >
+              車両CSV
+            </button>
+            <button
+              type="button"
+              onClick={() => exportCsv('メンテナンス', toCsvRows(maintenance), 'fleetmetric_maintenance.csv')}
+              className="py-2.5 rounded-full text-xs font-label font-semibold border border-outline-variant text-on-surface hover:bg-surface-container transition-colors"
+            >
+              メンテCSV
+            </button>
+            <button
+              type="button"
+              onClick={() => exportCsv('給油', toCsvRows(fuel), 'fleetmetric_fuel.csv')}
+              className="py-2.5 rounded-full text-xs font-label font-semibold border border-outline-variant text-on-surface hover:bg-surface-container transition-colors"
+            >
+              給油CSV
+            </button>
+            <button
+              type="button"
+              onClick={() => exportCsv('事故・修理', toCsvRows(accidents), 'fleetmetric_accidents.csv')}
+              className="py-2.5 rounded-full text-xs font-label font-semibold border border-outline-variant text-on-surface hover:bg-surface-container transition-colors"
+            >
+              事故CSV
+            </button>
+            <button
+              type="button"
+              onClick={() => exportCsv('ドライバー', toCsvRows(drivers), 'fleetmetric_drivers.csv')}
+              className="py-2.5 rounded-full text-xs font-label font-semibold border border-outline-variant text-on-surface hover:bg-surface-container transition-colors"
+            >
+              ドライバーCSV
+            </button>
+            <button
+              type="button"
+              onClick={() => exportCsv('運行記録', toCsvRows(operationRecords), 'fleetmetric_operations.csv')}
+              className="py-2.5 rounded-full text-xs font-label font-semibold border border-outline-variant text-on-surface hover:bg-surface-container transition-colors"
+            >
+              運行CSV
+            </button>
+          </div>
+          <button
+            type="button"
+            onClick={exportAllCsv}
+            className="w-full py-2.5 rounded-full text-xs font-label font-semibold bg-primary text-on-primary hover:bg-primary/90 transition-colors"
+          >
+            すべてCSV出力
+          </button>
+          {csvMessage && (
+            <p className="text-xs font-label text-on-surface-variant bg-surface-container rounded-lg px-3 py-2">
+              {csvMessage}
+            </p>
+          )}
+        </div>
       </Section>
 
       <Section title="データ復旧（旧スプレッドシート）">
