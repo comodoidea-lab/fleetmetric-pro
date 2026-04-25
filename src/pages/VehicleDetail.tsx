@@ -163,6 +163,7 @@ export function VehicleDetail() {
               {[
                 { label: '車両ID', value: vehicle['車両ID'] },
                 { label: '車両名', value: vehicle['車両名'] },
+                { label: '車両タイプ', value: vehicle.vehicleType || '車' },
                 { label: 'ナンバープレート', value: vehicle['ナンバー'] },
                 { label: 'メーカー', value: vehicle['メーカー'] || '—' },
                 { label: '車種', value: vehicle['車種'] || '—' },

@@ -6,7 +6,7 @@
 import { create } from 'zustand';
 import {
   Vehicle, MaintenanceRecord, AccidentRecord, FuelRecord,
-  Driver, OperationRecord,
+  Driver, OperationRecord, AttendanceRecord, AlcoholCheckRecord,
   DashboardData, Statistics, SyncStatus,
 } from '../types';
 import {
@@ -18,6 +18,8 @@ import {
   apiAddAccident, apiDeleteAccident,
   apiGetDrivers, apiAddDriver, apiUpdateDriver, apiDeleteDriver,
   apiGetOperationRecords, apiAddOperationRecord, apiDeleteOperationRecord,
+  apiGetAttendance, apiAddAttendance, apiDeleteAttendance,
+  apiGetAlcoholChecks, apiAddAlcoholCheck, apiDeleteAlcoholCheck,
 } from '../api/gasApi';
 import { createDemoSnapshot } from '../data/demoData';
 
@@ -52,6 +54,8 @@ interface AppState {
   statistics: Statistics | null;
   drivers: Driver[];
   operationRecords: OperationRecord[];
+  attendanceRecords: AttendanceRecord[];
+  alcoholChecks: AlcoholCheckRecord[];
 
   // UI state
   syncStatus: SyncStatus;
@@ -71,6 +75,8 @@ interface AppState {
   refreshStatistics: () => Promise<void>;
   refreshDrivers: () => Promise<void>;
   refreshOperationRecords: () => Promise<void>;
+  refreshAttendanceRecords: () => Promise<void>;
+  refreshAlcoholChecks: () => Promise<void>;
 
   addVehicle: (v: Omit<Vehicle, '車両ID' | '登録日'>) => Promise<void>;
   updateVehicle: (v: Vehicle) => Promise<void>;
@@ -91,6 +97,10 @@ interface AppState {
 
   addOperationRecord: (r: Omit<OperationRecord, '記録ID' | '走行距離(km)'>) => Promise<void>;
   deleteOperationRecord: (id: string) => Promise<void>;
+  addAttendanceRecord: (r: Omit<AttendanceRecord, 'id' | 'createdAt'>) => Promise<void>;
+  deleteAttendanceRecord: (id: string) => Promise<void>;
+  addAlcoholCheck: (r: Omit<AlcoholCheckRecord, 'id' | 'createdAt'>) => Promise<void>;
+  deleteAlcoholCheck: (id: string) => Promise<void>;
 }
 
 // ── Store ────────────────────────────────────────────────────
@@ -103,6 +113,8 @@ export const useStore = create<AppState>((set, get) => ({
   statistics: cacheGet<Statistics>('statistics'),
   drivers: cacheGet<Driver[]>('drivers') ?? [],
   operationRecords: cacheGet<OperationRecord[]>('operationRecords') ?? [],
+  attendanceRecords: cacheGet<AttendanceRecord[]>('attendanceRecords') ?? [],
+  alcoholChecks: cacheGet<AlcoholCheckRecord[]>('alcoholChecks') ?? [],
   syncStatus: 'idle',
   lastSynced: null,
   initialized: false,
@@ -137,7 +149,7 @@ export const useStore = create<AppState>((set, get) => ({
     }
     set({ syncStatus: 'syncing' });
     try {
-      const [dashboard, vehicles, maintenance, fuel, accidents, statistics, drivers, operationRecords] = await Promise.all([
+      const [dashboard, vehicles, maintenance, fuel, accidents, statistics, drivers, operationRecords, attendanceRecords, alcoholChecks] = await Promise.all([
         apiGetDashboard(),
         apiGetVehicles(),
         apiGetMaintenance(),
@@ -146,6 +158,8 @@ export const useStore = create<AppState>((set, get) => ({
         apiGetStatistics(),
         apiGetDrivers(),
         apiGetOperationRecords(),
+        apiGetAttendance(),
+        apiGetAlcoholChecks(),
       ]);
       cacheSet('dashboard', dashboard);
       cacheSet('vehicles', vehicles);
@@ -155,6 +169,8 @@ export const useStore = create<AppState>((set, get) => ({
       cacheSet('statistics', statistics);
       cacheSet('drivers', drivers);
       cacheSet('operationRecords', operationRecords);
+      cacheSet('attendanceRecords', attendanceRecords);
+      cacheSet('alcoholChecks', alcoholChecks);
       set({
         dashboard,
         vehicles,
@@ -164,6 +180,8 @@ export const useStore = create<AppState>((set, get) => ({
         statistics,
         drivers,
         operationRecords,
+        attendanceRecords,
+        alcoholChecks,
         syncStatus: 'success',
         lastSynced: new Date(),
         initialized: true,
@@ -222,6 +240,16 @@ export const useStore = create<AppState>((set, get) => ({
     const data = await apiGetOperationRecords();
     cacheSet('operationRecords', data);
     set({ operationRecords: data });
+  },
+  refreshAttendanceRecords: async () => {
+    const data = await apiGetAttendance();
+    cacheSet('attendanceRecords', data);
+    set({ attendanceRecords: data });
+  },
+  refreshAlcoholChecks: async () => {
+    const data = await apiGetAlcoholChecks();
+    cacheSet('alcoholChecks', data);
+    set({ alcoholChecks: data });
   },
 
   // ── Vehicles CRUD ────────────────────────────────────────
@@ -495,6 +523,68 @@ export const useStore = create<AppState>((set, get) => ({
     } catch {
       set({ operationRecords: prev });
       throw new Error('運行記録の削除に失敗しました');
+    }
+  },
+
+  addAttendanceRecord: async (r) => {
+    const tmpId = 'AT_tmp_' + Date.now();
+    const optimistic = { ...r, id: tmpId, createdAt: new Date().toISOString() } as AttendanceRecord;
+    set(s => ({ attendanceRecords: [optimistic, ...s.attendanceRecords] }));
+    try {
+      const { id } = await apiAddAttendance(r);
+      set(s => ({
+        attendanceRecords: s.attendanceRecords.map(x =>
+          x.id === tmpId ? { ...optimistic, id } : x,
+        ),
+      }));
+      cacheSet('attendanceRecords', get().attendanceRecords);
+      get().refreshDashboard().catch(console.error);
+    } catch {
+      set(s => ({ attendanceRecords: s.attendanceRecords.filter(x => x.id !== tmpId) }));
+      throw new Error('出退勤記録の追加に失敗しました');
+    }
+  },
+
+  deleteAttendanceRecord: async (id) => {
+    const prev = get().attendanceRecords;
+    set(s => ({ attendanceRecords: s.attendanceRecords.filter(x => x.id !== id) }));
+    try {
+      await apiDeleteAttendance(id);
+      cacheSet('attendanceRecords', get().attendanceRecords);
+    } catch {
+      set({ attendanceRecords: prev });
+      throw new Error('出退勤記録の削除に失敗しました');
+    }
+  },
+
+  addAlcoholCheck: async (r) => {
+    const tmpId = 'AL_tmp_' + Date.now();
+    const optimistic = { ...r, id: tmpId, createdAt: new Date().toISOString() } as AlcoholCheckRecord;
+    set(s => ({ alcoholChecks: [optimistic, ...s.alcoholChecks] }));
+    try {
+      const { id } = await apiAddAlcoholCheck(r);
+      set(s => ({
+        alcoholChecks: s.alcoholChecks.map(x =>
+          x.id === tmpId ? { ...optimistic, id } : x,
+        ),
+      }));
+      cacheSet('alcoholChecks', get().alcoholChecks);
+      get().refreshDashboard().catch(console.error);
+    } catch {
+      set(s => ({ alcoholChecks: s.alcoholChecks.filter(x => x.id !== tmpId) }));
+      throw new Error('アルコールチェック記録の追加に失敗しました');
+    }
+  },
+
+  deleteAlcoholCheck: async (id) => {
+    const prev = get().alcoholChecks;
+    set(s => ({ alcoholChecks: s.alcoholChecks.filter(x => x.id !== id) }));
+    try {
+      await apiDeleteAlcoholCheck(id);
+      cacheSet('alcoholChecks', get().alcoholChecks);
+    } catch {
+      set({ alcoholChecks: prev });
+      throw new Error('アルコールチェック記録の削除に失敗しました');
     }
   },
 }));

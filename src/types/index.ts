@@ -17,7 +17,9 @@ export interface Vehicle {
   '備考': string;
   '登録日': string;
   'アイコン'?: string;
+  vehicleType?: VehicleType;
 }
+export type VehicleType = '車' | 'トラック' | 'バン' | 'バス' | 'バイク' | '自転車';
 
 export interface MaintenanceRecord {
   ownerUid?: string;
@@ -95,10 +97,42 @@ export interface OperationRecord {
   '備考': string;
 }
 
+export interface AttendanceRecord {
+  id: string;
+  driverId: string;
+  driverName: string;
+  vehicleId?: string;
+  vehicleName?: string;
+  type: '出勤' | '退勤';
+  timestamp: string;
+  note?: string;
+  createdAt: string;
+}
+
+export interface AlcoholCheckRecord {
+  id: string;
+  driverId: string;
+  driverName: string;
+  vehicleId?: string;
+  vehicleName?: string;
+  timing: '運行前' | '運行後';
+  checkMethod: '対面' | 'セルフ';
+  photoSent: boolean;
+  result: '異常なし' | '要確認（陽性）';
+  positiveResponse?: string;
+  trafficViolation: boolean;
+  trafficViolationNote?: string;
+  confirmedBy: string;
+  detectorUsed: boolean;
+  timestamp: string;
+  note?: string;
+  createdAt: string;
+}
+
 export interface Alert {
   type: 'danger' | 'warning';
   vehicleName: string;
-  plateNumber: string;
+  plateNumber?: string;
   message: string;
   daysLeft: number;
   category: string;

@@ -15,6 +15,8 @@ const NAV_BASE: NavItem[] = [
 const NAV_DRIVER_EXTRA: NavItem[] = [
   { to: '/drivers', icon: 'badge', label: 'ドライバー' },
   { to: '/operations', icon: 'route', label: '運行記録' },
+  { to: '/attendance', icon: 'event_available', label: '出退勤' },
+  { to: '/alcohol-checks', icon: 'monitoring', label: 'アルコールチェック' },
 ];
 
 export function Sidebar() {

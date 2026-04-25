@@ -21,6 +21,7 @@ export function isDemoEnabled(): boolean {
 }
 
 const DOMAIN_STORAGE_KEY    = 'fleetmetric_allowed_domain';
+const ORGANIZATION_STORAGE_KEY = 'fleetmetric_organization_id';
 
 // ── Allowed Domain（env / localStorage） ─────────────────────
 export function getAllowedDomain(): string {
@@ -33,6 +34,19 @@ export function setAllowedDomain(domain: string): void {
   } else {
     localStorage.removeItem(DOMAIN_STORAGE_KEY);
   }
+}
+
+export function getOrganizationId(): string {
+  const fromStorage = localStorage.getItem(ORGANIZATION_STORAGE_KEY);
+  if (fromStorage) return fromStorage;
+
+  const fromEnv = (env.VITE_ORGANIZATION_ID as string) || '';
+  if (fromEnv.trim()) return fromEnv.trim();
+
+  const fromDomain = getAllowedDomain();
+  if (fromDomain) return fromDomain.replace(/[^a-zA-Z0-9_-]/g, '_');
+
+  return 'default';
 }
 
 function userSettingsRef(uid: string) {

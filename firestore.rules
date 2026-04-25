@@ -112,5 +112,13 @@ service cloud.firestore {
       allow read: if canReadDataDoc();
       allow update, delete: if canUpdateDataDoc();
     }
+
+    match /organizations/{organizationId}/attendance/{docId} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /organizations/{organizationId}/alcoholChecks/{docId} {
+      allow read, write: if isSignedIn();
+    }
   }
 }
