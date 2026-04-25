@@ -51,7 +51,7 @@ export function Attendance() {
               <div key={r.id} className="flex items-center gap-4 px-5 py-4 hover:bg-surface-container transition-colors">
                 <div className={`w-9 h-9 rounded-full flex items-center justify-center ${r.type === '出勤' ? 'bg-tertiary-container' : 'bg-secondary-container'}`}>
                   <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-                    {r.type === '出勤' ? 'login' : 'logout'}
+                    {r.type === '出勤' ? 'arrow_right_alt' : 'arrow_left_alt'}
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
