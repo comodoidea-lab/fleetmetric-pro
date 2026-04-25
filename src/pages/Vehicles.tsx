@@ -127,7 +127,9 @@ export function Vehicles() {
                     </Link>
                     <StatusBadge status={v['ステータス']} size="sm" />
                   </div>
-                  <p className="text-xs font-label text-on-surface-variant mt-0.5">{v['ナンバー']} · {v['メーカー']} {v['車種']} {v['年式']}年</p>
+                  <p className="text-xs font-label text-on-surface-variant mt-0.5">
+                    {v['ナンバー']} · {v.vehicleType || '車'} · {v['メーカー']} {v['車種']} {v['年式']}年
+                  </p>
                   <div className="flex flex-wrap gap-3 mt-1.5">
                     <InspectionBadge dateStr={v['車検期限']} label="車検" />
                     <InspectionBadge dateStr={v['法定点検期限']} label="法定点検" />

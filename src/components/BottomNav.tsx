@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useMultiDriverMode } from '../hooks/useMultiDriverMode';
 
-const RECORD_PATH_PREFIXES = ['/maintenance', '/fuel', '/accidents', '/drivers', '/operations'];
+const RECORD_PATH_PREFIXES = ['/maintenance', '/fuel', '/accidents', '/drivers', '/operations', '/attendance', '/alcohol-checks'];
 
 function pathIsUnderRecords(pathname: string): boolean {
   return RECORD_PATH_PREFIXES.some(
@@ -27,6 +27,8 @@ export function BottomNav() {
     return [
       { to: '/drivers', label: 'ドライバー', icon: 'badge' as const },
       { to: '/operations', label: '運行記録', icon: 'route' as const },
+      { to: '/attendance', label: '出退勤', icon: 'event_available' as const },
+      { to: '/alcohol-checks', label: 'アルコールチェック', icon: 'monitoring' as const },
       ...base,
     ];
   }, [multiDriverMode]);

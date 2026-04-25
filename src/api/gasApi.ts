@@ -9,8 +9,11 @@ import {
 } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, fn } from '../firebase';
+import { getOrganizationId } from '../config';
 import type {
+  AlcoholCheckRecord,
   AccidentRecord,
+  AttendanceRecord,
   DashboardData,
   Driver,
   FuelRecord,
@@ -19,7 +22,7 @@ import type {
   Statistics,
   Vehicle,
 } from '../types';
-import { COLLECTIONS, toNumber } from '../types/firestore';
+import { COLLECTIONS, orgCollectionPath, toNumber } from '../types/firestore';
 
 function createId(prefix: string): string {
   const rand = Math.random().toString(36).slice(2, 8).toUpperCase();
@@ -28,6 +31,21 @@ function createId(prefix: string): string {
 
 function todayJa(): string {
   return new Date().toLocaleDateString('ja-JP');
+}
+
+function toIsoIfTimestamp(value: unknown): string {
+  if (!value) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'object' && value !== null && 'toDate' in value && typeof (value as { toDate: () => Date }).toDate === 'function') {
+    return (value as { toDate: () => Date }).toDate().toISOString();
+  }
+  if (value instanceof Date) return value.toISOString();
+  return '';
+}
+
+function orgCollection(name: 'attendance' | 'alcoholChecks') {
+  const organizationId = getOrganizationId();
+  return collection(db, orgCollectionPath(organizationId, name));
 }
 
 async function fetchAll<T>(name: string): Promise<T[]> {
@@ -72,6 +90,7 @@ function deriveDashboardData(
   vehicles: Vehicle[],
   maintenance: MaintenanceRecord[],
   fuel: FuelRecord[],
+  alcoholChecks: AlcoholCheckRecord[] = [],
 ): DashboardData {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -98,6 +117,17 @@ function deriveDashboardData(
         });
       }
     }
+  }
+  for (const check of alcoholChecks) {
+    if (check.result !== '要確認（陽性）') continue;
+    alerts.push({
+      type: 'danger',
+      vehicleName: check.driverName,
+      plateNumber: check.vehicleName || '車両未設定',
+      message: `${check.timing}：要確認（陽性）`,
+      daysLeft: -9999,
+      category: 'アルコールチェック',
+    });
   }
   const thisMonth = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit' }).replace('/', '/');
   const monthlyFuelCost = fuel
@@ -143,14 +173,30 @@ function deriveStatistics(
 
 export async function apiGetDashboard(): Promise<DashboardData> {
   try {
-    return await callDashboardFunction();
+    const base = await callDashboardFunction();
+    const alcoholChecks = await apiGetAlcoholChecks();
+    const alcoholAlerts: DashboardData['alerts'] = alcoholChecks
+      .filter((check) => check.result === '要確認（陽性）')
+      .map((check) => ({
+        type: 'danger',
+        vehicleName: check.driverName,
+        plateNumber: check.vehicleName || '車両未設定',
+        message: `${check.timing}：要確認（陽性）`,
+        daysLeft: -9999,
+        category: 'アルコールチェック',
+      }));
+    return {
+      ...base,
+      alerts: [...alcoholAlerts, ...base.alerts].sort((a, b) => a.daysLeft - b.daysLeft),
+    };
   } catch {
-    const [vehicles, maintenance, fuel] = await Promise.all([
+    const [vehicles, maintenance, fuel, alcoholChecks] = await Promise.all([
       apiGetVehicles(),
       apiGetMaintenance(),
       apiGetFuel(),
+      apiGetAlcoholChecks(),
     ]);
-    return deriveDashboardData(vehicles, maintenance, fuel);
+    return deriveDashboardData(vehicles, maintenance, fuel, alcoholChecks);
   }
 }
 
@@ -299,5 +345,67 @@ export async function apiAddOperationRecord(
 
 export async function apiDeleteOperationRecord(id: string): Promise<{ success: boolean }> {
   await deleteDoc(doc(db, COLLECTIONS.operationRecords, id));
+  return { success: true };
+}
+
+export async function apiGetAttendance(): Promise<AttendanceRecord[]> {
+  const snap = await getDocs(query(orgCollection(COLLECTIONS.attendance)));
+  return snap.docs.map((d) => {
+    const data = d.data() as Omit<AttendanceRecord, 'id'>;
+    return {
+      ...data,
+      id: d.id,
+      timestamp: toIsoIfTimestamp(data.timestamp),
+      createdAt: toIsoIfTimestamp(data.createdAt),
+    };
+  });
+}
+
+export async function apiAddAttendance(
+  payload: Omit<AttendanceRecord, 'id' | 'createdAt'>,
+): Promise<{ success: boolean; id: string }> {
+  const id = createId('AT');
+  const data: AttendanceRecord = {
+    ...payload,
+    id,
+    createdAt: new Date().toISOString(),
+  };
+  await setDoc(doc(orgCollection(COLLECTIONS.attendance), id), data);
+  return { success: true, id };
+}
+
+export async function apiDeleteAttendance(id: string): Promise<{ success: boolean }> {
+  await deleteDoc(doc(orgCollection(COLLECTIONS.attendance), id));
+  return { success: true };
+}
+
+export async function apiGetAlcoholChecks(): Promise<AlcoholCheckRecord[]> {
+  const snap = await getDocs(query(orgCollection(COLLECTIONS.alcoholChecks)));
+  return snap.docs.map((d) => {
+    const data = d.data() as Omit<AlcoholCheckRecord, 'id'>;
+    return {
+      ...data,
+      id: d.id,
+      timestamp: toIsoIfTimestamp(data.timestamp),
+      createdAt: toIsoIfTimestamp(data.createdAt),
+    };
+  });
+}
+
+export async function apiAddAlcoholCheck(
+  payload: Omit<AlcoholCheckRecord, 'id' | 'createdAt'>,
+): Promise<{ success: boolean; id: string }> {
+  const id = createId('AL');
+  const data: AlcoholCheckRecord = {
+    ...payload,
+    id,
+    createdAt: new Date().toISOString(),
+  };
+  await setDoc(doc(orgCollection(COLLECTIONS.alcoholChecks), id), data);
+  return { success: true, id };
+}
+
+export async function apiDeleteAlcoholCheck(id: string): Promise<{ success: boolean }> {
+  await deleteDoc(doc(orgCollection(COLLECTIONS.alcoholChecks), id));
   return { success: true };
 }

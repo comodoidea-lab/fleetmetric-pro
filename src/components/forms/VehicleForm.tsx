@@ -10,6 +10,16 @@ const VEHICLE_ICONS = [
   { value: 'airport_shuttle', label: 'バン' },
   { value: 'directions_bus',  label: 'バス' },
 ];
+const VEHICLE_TYPES = ['車', 'トラック', 'バン', 'バス', 'バイク', '自転車'] as const;
+
+function inferVehicleType(icon: string): (typeof VEHICLE_TYPES)[number] {
+  if (icon === 'two_wheeler') return 'バイク';
+  if (icon === 'electric_bike') return '自転車';
+  if (icon === 'local_shipping') return 'トラック';
+  if (icon === 'airport_shuttle') return 'バン';
+  if (icon === 'directions_bus') return 'バス';
+  return '車';
+}
 
 interface Props {
   vehicle?: Vehicle | null;
@@ -31,6 +41,7 @@ export function VehicleForm({ vehicle, onClose }: Props) {
     'ステータス': vehicle?.['ステータス'] ?? '稼働中',
     '備考': vehicle?.['備考'] ?? '',
     'アイコン': vehicle?.['アイコン'] ?? 'directions_car',
+    vehicleType: vehicle?.vehicleType ?? inferVehicleType(vehicle?.['アイコン'] ?? 'directions_car'),
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -48,6 +59,7 @@ export function VehicleForm({ vehicle, onClose }: Props) {
         '車検期限': form['車検期限'].replace(/-/g, '/'),
         '法定点検期限': form['法定点検期限'].replace(/-/g, '/'),
         'アイコン': form['アイコン'],
+        vehicleType: form.vehicleType,
       };
       if (isEdit && vehicle) {
         await updateVehicle({ ...vehicle, ...data });
@@ -85,6 +97,16 @@ export function VehicleForm({ vehicle, onClose }: Props) {
               </button>
             ))}
           </div>
+        </Field>
+
+        <Field label="車両タイプ" icon="garage">
+          <select className={inputCls} value={form.vehicleType} onChange={e => set('vehicleType', e.target.value)}>
+            {VEHICLE_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
         </Field>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

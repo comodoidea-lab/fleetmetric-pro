@@ -1,5 +1,7 @@
 import type {
+  AlcoholCheckRecord,
   AccidentRecord,
+  AttendanceRecord,
   Driver,
   FuelRecord,
   MaintenanceRecord,
@@ -14,6 +16,9 @@ export const COLLECTIONS = {
   accidentRecords: 'accidentRecords',
   drivers: 'drivers',
   operationRecords: 'operationRecords',
+  organizations: 'organizations',
+  attendance: 'attendance',
+  alcoholChecks: 'alcoholChecks',
 } as const;
 
 export type CollectionName = (typeof COLLECTIONS)[keyof typeof COLLECTIONS];
@@ -31,7 +36,13 @@ export type FirestoreEntity =
   | FuelRecord
   | AccidentRecord
   | Driver
-  | OperationRecord;
+  | OperationRecord
+  | AttendanceRecord
+  | AlcoholCheckRecord;
+
+export function orgCollectionPath(organizationId: string, collectionName: 'attendance' | 'alcoholChecks'): string {
+  return `${COLLECTIONS.organizations}/${organizationId}/${collectionName}`;
+}
 
 export function toNumber(value: unknown): number {
   const num = Number(value);

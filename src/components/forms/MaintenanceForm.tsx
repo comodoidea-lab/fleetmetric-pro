@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useStore } from '../../store/store';
 import { Modal, Field, inputCls } from './VehicleForm';
 
-const WORK_TYPES = ['オイル交換', '法定点検', '車検', 'タイヤ交換', 'バッテリー交換', 'ブレーキ点検', '定期点検', 'その他'];
+const BASE_WORK_TYPES = ['法定点検', '車検', 'タイヤ交換', 'バッテリー交換', '定期点検'];
+const TWO_WHEELER_WORK_TYPES = ['チェーン交換', 'チェーン清掃・注油', 'タイヤ空気圧確認', 'ブレーキパッド確認'];
+const BIKE_ONLY_WORK_TYPES = ['オイル交換', 'エレメント交換'];
 
 interface Props {
   vehicleId?: string;
@@ -33,6 +35,16 @@ export function MaintenanceForm({ vehicleId, onClose }: Props) {
     workTypes: f.workTypes.includes(w) ? f.workTypes.filter(x => x !== w) : [...f.workTypes, w],
   }));
   const selectedVehicle = vehicles.find(v => v['車両ID'] === form.vehicleId);
+  const selectedVehicleType = selectedVehicle?.vehicleType || '車';
+  const workTypeOptions = useMemo(() => {
+    if (selectedVehicleType === 'バイク') {
+      return [...BASE_WORK_TYPES, ...TWO_WHEELER_WORK_TYPES, ...BIKE_ONLY_WORK_TYPES, 'その他'];
+    }
+    if (selectedVehicleType === '自転車') {
+      return [...BASE_WORK_TYPES, ...TWO_WHEELER_WORK_TYPES, 'その他'];
+    }
+    return [...BASE_WORK_TYPES, 'オイル交換', 'ブレーキ点検', 'その他'];
+  }, [selectedVehicleType]);
   const workContent = [...form.workTypes, ...(form.customWork.trim() ? [form.customWork.trim()] : [])].join('、');
 
   async function handleSubmit(e: React.FormEvent) {
@@ -66,7 +78,7 @@ export function MaintenanceForm({ vehicleId, onClose }: Props) {
         <Field label="車両 *" icon="directions_car">
           <select className={inputCls} value={form.vehicleId} onChange={e => set('vehicleId', e.target.value)} required>
             <option value="">車両を選択</option>
-            {vehicles.map(v => <option key={v['車両ID']} value={v['車両ID']}>{v['車両名']} — {v['ナンバー']}</option>)}
+            {vehicles.map(v => <option key={v['車両ID']} value={v['車両ID']}>{v['車両名']} — {v['ナンバー']}（{v.vehicleType || '車'}）</option>)}
           </select>
         </Field>
 
@@ -80,7 +92,7 @@ export function MaintenanceForm({ vehicleId, onClose }: Props) {
             作業内容 *
           </label>
           <div className="grid grid-cols-2 gap-2 mb-2">
-            {WORK_TYPES.map(w => (
+            {workTypeOptions.map(w => (
               <button
                 key={w}
                 type="button"
@@ -99,12 +111,14 @@ export function MaintenanceForm({ vehicleId, onClose }: Props) {
               選択中: {workContent}
             </p>
           )}
-          <input
-            className={inputCls}
-            value={form.customWork}
-            onChange={e => set('customWork', e.target.value)}
-            placeholder="その他（直接入力）"
-          />
+          {form.workTypes.includes('その他') && (
+            <input
+              className={inputCls}
+              value={form.customWork}
+              onChange={e => set('customWork', e.target.value)}
+              placeholder="その他（自由入力）"
+            />
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4">

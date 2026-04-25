@@ -12,6 +12,8 @@ import { Accidents } from './pages/Accidents';
 import { Reports } from './pages/Reports';
 import { Drivers } from './pages/Drivers';
 import { OperationRecords } from './pages/OperationRecords';
+import { Attendance } from './pages/Attendance';
+import { AlcoholChecks } from './pages/AlcoholChecks';
 import { Settings } from './pages/Settings';
 import { Login } from './pages/Login';
 import { useStore } from './store/store';
@@ -91,6 +93,8 @@ function AppRoutes() {
         <Route path="/reports" element={<Reports />} />
         <Route path="/drivers" element={<Drivers />} />
         <Route path="/operations" element={<OperationRecords />} />
+        <Route path="/attendance" element={<Attendance />} />
+        <Route path="/alcohol-checks" element={<AlcoholChecks />} />
         <Route path="/settings" element={<Settings />} />
       </Routes>
     </Layout>

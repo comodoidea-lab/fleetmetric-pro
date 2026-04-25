@@ -21,19 +21,19 @@ export function StatusBadge({ status, size = 'md' }: Props) {
   return <span className={`${base} bg-surface-container text-on-surface-variant`}>{status}</span>;
 }
 
-export function AlertBadge({ type }: { type: 'danger' | 'warning' }) {
+export function AlertBadge({ type, label }: { type: 'danger' | 'warning'; label?: string }) {
   if (type === 'danger') {
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-error-container text-on-error-container">
         <span className="material-symbols-outlined text-xs" style={{ fontSize: 12 }}>error</span>
-        期限切れ
+        {label || '期限切れ'}
       </span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-secondary-container text-on-secondary-fixed">
       <span className="material-symbols-outlined text-xs" style={{ fontSize: 12 }}>warning</span>
-      要注意
+      {label || '要注意'}
     </span>
   );
 }
