@@ -1,5 +1,7 @@
 import type {
+  AlcoholCheckRecord,
   AccidentRecord,
+  AttendanceRecord,
   DashboardData,
   Driver,
   FuelRecord,
@@ -156,6 +158,70 @@ const operationRecords: OperationRecord[] = [
   },
 ];
 
+const attendanceRecords: AttendanceRecord[] = [
+  {
+    id: 'AT-DEMO-001',
+    driverId: 'D-DEMO-001',
+    driverName: '山田 太郎',
+    vehicleId: 'V-DEMO-001',
+    vehicleName: 'ハイエース',
+    type: '出勤',
+    timestamp: '2026-04-05T08:45:00+09:00',
+    note: '直行で配送開始',
+    createdAt: '2026-04-05T08:45:00+09:00',
+  },
+  {
+    id: 'AT-DEMO-002',
+    driverId: 'D-DEMO-001',
+    driverName: '山田 太郎',
+    vehicleId: 'V-DEMO-001',
+    vehicleName: 'ハイエース',
+    type: '退勤',
+    timestamp: '2026-04-05T18:20:00+09:00',
+    note: '車両点検済み',
+    createdAt: '2026-04-05T18:20:00+09:00',
+  },
+];
+
+const alcoholChecks: AlcoholCheckRecord[] = [
+  {
+    id: 'AL-DEMO-001',
+    driverId: 'D-DEMO-001',
+    driverName: '山田 太郎',
+    vehicleId: 'V-DEMO-001',
+    vehicleName: 'ハイエース',
+    timing: '運行前',
+    checkMethod: '対面',
+    photoSent: false,
+    result: '異常なし',
+    trafficViolation: false,
+    confirmedBy: '管理者A',
+    detectorUsed: true,
+    timestamp: '2026-04-05T08:40:00+09:00',
+    note: '通常確認',
+    createdAt: '2026-04-05T08:40:00+09:00',
+  },
+  {
+    id: 'AL-DEMO-002',
+    driverId: 'D-DEMO-002',
+    driverName: '佐藤 花子',
+    vehicleId: 'V-DEMO-002',
+    vehicleName: 'プロボックス',
+    timing: '運行後',
+    checkMethod: 'セルフ',
+    photoSent: true,
+    result: '要確認（陽性）',
+    positiveResponse: '管理者へ連絡し、運転中止・帰宅指示',
+    trafficViolation: true,
+    trafficViolationNote: '一時停止違反の指摘あり',
+    confirmedBy: '管理者B',
+    detectorUsed: true,
+    timestamp: '2026-04-04T19:10:00+09:00',
+    note: '要経過観察',
+    createdAt: '2026-04-04T19:10:00+09:00',
+  },
+];
+
 const dashboard: DashboardData = {
   vehicleCount: vehicles.length,
   activeCount: vehicles.filter((v) => v['ステータス'] === '稼働中').length,
@@ -206,5 +272,7 @@ export function createDemoSnapshot() {
     },
     drivers: drivers.map((x) => ({ ...x })),
     operationRecords: operationRecords.map((x) => ({ ...x })),
+    attendanceRecords: attendanceRecords.map((x) => ({ ...x })),
+    alcoholChecks: alcoholChecks.map((x) => ({ ...x })),
   };
 }
