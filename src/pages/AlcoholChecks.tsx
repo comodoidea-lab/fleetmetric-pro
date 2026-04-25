@@ -60,6 +60,21 @@ export function AlcoholChecks() {
                     {new Date(r.timestamp).toLocaleString('ja-JP')} · {r.timing} · {r.checkMethod}
                   </p>
                   <p className="text-xs text-on-surface-variant">確認者: {r.confirmedBy}</p>
+                  {r.checkMethod === 'セルフ' && (
+                    <p className="text-xs text-on-surface-variant">
+                      顔写真送信: {r.photoSent ? '送信済み' : '未送信'}
+                    </p>
+                  )}
+                  {r.result === '要確認（陽性）' && r.positiveResponse && (
+                    <p className="text-xs text-error mt-0.5">
+                      陽性時の会社対応: {r.positiveResponse}
+                    </p>
+                  )}
+                  {r.trafficViolation && (
+                    <p className="text-xs text-on-surface-variant mt-0.5">
+                      交通違反詳細: {r.trafficViolationNote || '詳細未入力'}
+                    </p>
+                  )}
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${r.result === '要確認（陽性）' ? 'bg-error text-on-error' : 'bg-tertiary-fixed text-on-tertiary-fixed'}`}>
