@@ -3,6 +3,8 @@
 // ============================================================
 
 export interface Vehicle {
+  ownerUid?: string;
+  organizationId?: string;
   '車両ID': string;
   '車両名': string;
   'ナンバー': string;
@@ -20,6 +22,8 @@ export interface Vehicle {
 export type VehicleType = '車' | 'トラック' | 'バン' | 'バス' | 'バイク' | '自転車';
 
 export interface MaintenanceRecord {
+  ownerUid?: string;
+  organizationId?: string;
   '記録ID': string;
   '車両ID': string;
   '車両名': string;
@@ -33,6 +37,8 @@ export interface MaintenanceRecord {
 }
 
 export interface AccidentRecord {
+  ownerUid?: string;
+  organizationId?: string;
   '記録ID': string;
   '車両ID': string;
   '車両名': string;
@@ -46,6 +52,8 @@ export interface AccidentRecord {
 }
 
 export interface FuelRecord {
+  ownerUid?: string;
+  organizationId?: string;
   '記録ID': string;
   '車両ID': string;
   '車両名': string;
@@ -60,6 +68,8 @@ export interface FuelRecord {
 
 /** ドライバーマスタ */
 export interface Driver {
+  ownerUid?: string;
+  organizationId?: string;
   'ドライバーID': string;
   '氏名': string;
   '電話番号': string;
@@ -70,6 +80,8 @@ export interface Driver {
 
 /** 運行記録 */
 export interface OperationRecord {
+  ownerUid?: string;
+  organizationId?: string;
   '記録ID': string;
   '車両ID': string;
   '車両名': string;

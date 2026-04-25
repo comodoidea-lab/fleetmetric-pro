@@ -21,6 +21,7 @@ import {
   apiGetAttendance, apiAddAttendance, apiDeleteAttendance,
   apiGetAlcoholChecks, apiAddAlcoholCheck, apiDeleteAlcoholCheck,
 } from '../api/gasApi';
+import { createDemoSnapshot } from '../data/demoData';
 
 // ── localStorage cache helpers ───────────────────────────────
 const CACHE_PREFIX = 'fleetmetric_';
@@ -60,8 +61,11 @@ interface AppState {
   syncStatus: SyncStatus;
   lastSynced: Date | null;
   initialized: boolean;
+  demoMode: boolean;
 
   // Actions
+  enableDemoMode: () => void;
+  disableDemoMode: () => void;
   loadAll: () => Promise<void>;
   refreshDashboard: () => Promise<void>;
   refreshVehicles: () => Promise<void>;
@@ -114,9 +118,35 @@ export const useStore = create<AppState>((set, get) => ({
   syncStatus: 'idle',
   lastSynced: null,
   initialized: false,
+  demoMode: false,
+
+  enableDemoMode: () => {
+    const demo = createDemoSnapshot();
+    set({
+      ...demo,
+      demoMode: true,
+      syncStatus: 'success',
+      lastSynced: new Date(),
+      initialized: true,
+    });
+  },
+
+  disableDemoMode: () => {
+    set({ demoMode: false });
+  },
 
   // ── Load all data on startup ─────────────────────────────
   loadAll: async () => {
+    if (get().demoMode) {
+      const demo = createDemoSnapshot();
+      set({
+        ...demo,
+        syncStatus: 'success',
+        lastSynced: new Date(),
+        initialized: true,
+      });
+      return;
+    }
     set({ syncStatus: 'syncing' });
     try {
       const [dashboard, vehicles, maintenance, fuel, accidents, statistics, drivers, operationRecords, attendanceRecords, alcoholChecks] = await Promise.all([
@@ -164,41 +194,49 @@ export const useStore = create<AppState>((set, get) => ({
 
   // ── Individual refresh ───────────────────────────────────
   refreshDashboard: async () => {
+    if (get().demoMode) return;
     const data = await apiGetDashboard();
     cacheSet('dashboard', data);
     set({ dashboard: data });
   },
   refreshVehicles: async () => {
+    if (get().demoMode) return;
     const data = await apiGetVehicles();
     cacheSet('vehicles', data);
     set({ vehicles: data });
   },
   refreshMaintenance: async () => {
+    if (get().demoMode) return;
     const data = await apiGetMaintenance();
     cacheSet('maintenance', data);
     set({ maintenance: data });
   },
   refreshFuel: async () => {
+    if (get().demoMode) return;
     const data = await apiGetFuel();
     cacheSet('fuel', data);
     set({ fuel: data });
   },
   refreshAccidents: async () => {
+    if (get().demoMode) return;
     const data = await apiGetAccidents();
     cacheSet('accidents', data);
     set({ accidents: data });
   },
   refreshStatistics: async () => {
+    if (get().demoMode) return;
     const data = await apiGetStatistics();
     cacheSet('statistics', data);
     set({ statistics: data });
   },
   refreshDrivers: async () => {
+    if (get().demoMode) return;
     const data = await apiGetDrivers();
     cacheSet('drivers', data);
     set({ drivers: data });
   },
   refreshOperationRecords: async () => {
+    if (get().demoMode) return;
     const data = await apiGetOperationRecords();
     cacheSet('operationRecords', data);
     set({ operationRecords: data });
@@ -216,6 +254,12 @@ export const useStore = create<AppState>((set, get) => ({
 
   // ── Vehicles CRUD ────────────────────────────────────────
   addVehicle: async (v) => {
+    if (get().demoMode) {
+      const id = 'V_demo_' + Date.now();
+      const item = { ...v, '車両ID': id, '登録日': new Date().toLocaleDateString('ja-JP'), ownerUid: 'demo-user' } as Vehicle;
+      set(s => ({ vehicles: [...s.vehicles, item] }));
+      return;
+    }
     const tmpId = 'V_tmp_' + Date.now();
     const optimistic = { ...v, '車両ID': tmpId, '登録日': new Date().toLocaleDateString('ja-JP') } as Vehicle;
     set(s => ({ vehicles: [...s.vehicles, optimistic] }));
@@ -231,6 +275,10 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   updateVehicle: async (v) => {
+    if (get().demoMode) {
+      set(s => ({ vehicles: s.vehicles.map(x => x['車両ID'] === v['車両ID'] ? v : x) }));
+      return;
+    }
     const prev = get().vehicles;
     set(s => ({ vehicles: s.vehicles.map(x => x['車両ID'] === v['車両ID'] ? v : x) }));
     try {
@@ -243,6 +291,10 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   deleteVehicle: async (id) => {
+    if (get().demoMode) {
+      set(s => ({ vehicles: s.vehicles.filter(x => x['車両ID'] !== id) }));
+      return;
+    }
     const prev = get().vehicles;
     set(s => ({ vehicles: s.vehicles.filter(x => x['車両ID'] !== id) }));
     try {
@@ -257,6 +309,12 @@ export const useStore = create<AppState>((set, get) => ({
 
   // ── Maintenance CRUD ─────────────────────────────────────
   addMaintenance: async (r) => {
+    if (get().demoMode) {
+      const id = 'M_demo_' + Date.now();
+      const item = { ...r, '記録ID': id, ownerUid: 'demo-user' } as MaintenanceRecord;
+      set(s => ({ maintenance: [item, ...s.maintenance] }));
+      return;
+    }
     const tmpId = 'M_tmp_' + Date.now();
     const optimistic = { ...r, '記録ID': tmpId } as MaintenanceRecord;
     set(s => ({ maintenance: [optimistic, ...s.maintenance] }));
@@ -273,6 +331,10 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   deleteMaintenance: async (id) => {
+    if (get().demoMode) {
+      set(s => ({ maintenance: s.maintenance.filter(x => x['記録ID'] !== id) }));
+      return;
+    }
     const prev = get().maintenance;
     set(s => ({ maintenance: s.maintenance.filter(x => x['記録ID'] !== id) }));
     try {
@@ -286,6 +348,12 @@ export const useStore = create<AppState>((set, get) => ({
 
   // ── Fuel CRUD ────────────────────────────────────────────
   addFuel: async (r) => {
+    if (get().demoMode) {
+      const id = 'F_demo_' + Date.now();
+      const item = { ...r, '記録ID': id, ownerUid: 'demo-user' } as FuelRecord;
+      set(s => ({ fuel: [item, ...s.fuel] }));
+      return;
+    }
     const tmpId = 'F_tmp_' + Date.now();
     const optimistic = { ...r, '記録ID': tmpId } as FuelRecord;
     set(s => ({ fuel: [optimistic, ...s.fuel] }));
@@ -300,6 +368,10 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   deleteFuel: async (id) => {
+    if (get().demoMode) {
+      set(s => ({ fuel: s.fuel.filter(x => x['記録ID'] !== id) }));
+      return;
+    }
     const prev = get().fuel;
     set(s => ({ fuel: s.fuel.filter(x => x['記録ID'] !== id) }));
     try {
@@ -313,6 +385,12 @@ export const useStore = create<AppState>((set, get) => ({
 
   // ── Accidents CRUD ───────────────────────────────────────
   addAccident: async (r) => {
+    if (get().demoMode) {
+      const id = 'A_demo_' + Date.now();
+      const item = { ...r, '記録ID': id, ownerUid: 'demo-user' } as AccidentRecord;
+      set(s => ({ accidents: [item, ...s.accidents] }));
+      return;
+    }
     const tmpId = 'A_tmp_' + Date.now();
     const optimistic = { ...r, '記録ID': tmpId } as AccidentRecord;
     set(s => ({ accidents: [optimistic, ...s.accidents] }));
@@ -327,6 +405,10 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   deleteAccident: async (id) => {
+    if (get().demoMode) {
+      set(s => ({ accidents: s.accidents.filter(x => x['記録ID'] !== id) }));
+      return;
+    }
     const prev = get().accidents;
     set(s => ({ accidents: s.accidents.filter(x => x['記録ID'] !== id) }));
     try {
@@ -340,6 +422,12 @@ export const useStore = create<AppState>((set, get) => ({
 
   // ── Drivers CRUD ─────────────────────────────────────────
   addDriver: async (d) => {
+    if (get().demoMode) {
+      const id = 'D_demo_' + Date.now();
+      const item = { ...d, 'ドライバーID': id, '登録日': new Date().toLocaleDateString('ja-JP'), ownerUid: 'demo-user' } as Driver;
+      set(s => ({ drivers: [...s.drivers, item] }));
+      return;
+    }
     const tmpId = 'D_tmp_' + Date.now();
     const optimistic = {
       ...d,
@@ -360,6 +448,10 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   updateDriver: async (d) => {
+    if (get().demoMode) {
+      set(s => ({ drivers: s.drivers.map(x => (x['ドライバーID'] === d['ドライバーID'] ? d : x)) }));
+      return;
+    }
     const prev = get().drivers;
     set(s => ({ drivers: s.drivers.map(x => (x['ドライバーID'] === d['ドライバーID'] ? d : x)) }));
     try {
@@ -372,6 +464,10 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   deleteDriver: async (id) => {
+    if (get().demoMode) {
+      set(s => ({ drivers: s.drivers.filter(x => x['ドライバーID'] !== id) }));
+      return;
+    }
     const prev = get().drivers;
     set(s => ({ drivers: s.drivers.filter(x => x['ドライバーID'] !== id) }));
     try {
@@ -385,6 +481,15 @@ export const useStore = create<AppState>((set, get) => ({
 
   // ── Operation records ───────────────────────────────────
   addOperationRecord: async (r) => {
+    if (get().demoMode) {
+      const depDemo = Number(r['出発時走行距離(km)']) || 0;
+      const retDemo = Number(r['帰着時走行距離(km)']) || 0;
+      const distDemo = retDemo >= depDemo ? Math.round((retDemo - depDemo) * 1000) / 1000 : 0;
+      const id = 'R_demo_' + Date.now();
+      const item = { ...r, '記録ID': id, '走行距離(km)': distDemo, ownerUid: 'demo-user' } as OperationRecord;
+      set(s => ({ operationRecords: [item, ...s.operationRecords] }));
+      return;
+    }
     const dep = Number(r['出発時走行距離(km)']) || 0;
     const ret = Number(r['帰着時走行距離(km)']) || 0;
     const dist = ret >= dep ? Math.round((ret - dep) * 1000) / 1000 : 0;
@@ -406,6 +511,10 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   deleteOperationRecord: async (id) => {
+    if (get().demoMode) {
+      set(s => ({ operationRecords: s.operationRecords.filter(x => x['記録ID'] !== id) }));
+      return;
+    }
     const prev = get().operationRecords;
     set(s => ({ operationRecords: s.operationRecords.filter(x => x['記録ID'] !== id) }));
     try {

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.runLegacySpreadsheetRestore = exports.getStatisticsData = exports.getDashboardData = void 0;
+exports.runLegacySpreadsheetRestore = exports.joinOrganizationByInviteCode = exports.issueInviteCode = exports.createOrganization = exports.getStatisticsData = exports.getDashboardData = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const app_1 = require("firebase-admin/app");
 const firestore_1 = require("firebase-admin/firestore");
@@ -34,6 +34,53 @@ function normalizeCell(value) {
         return value;
     return String(value);
 }
+function toOrganizationId(email, uid) {
+    const normalized = email.trim().toLowerCase();
+    if (!normalized.includes('@'))
+        return uid;
+    return normalized.split('@')[1] || uid;
+}
+function createOrganizationId() {
+    const rand = Math.random().toString(36).slice(2, 8);
+    return `org_${Date.now()}_${rand}`;
+}
+function createInviteCode() {
+    return String(Math.floor(Math.random() * 1000000)).padStart(6, '0');
+}
+function toIso(value) {
+    if (value && typeof value === 'object' && 'toDate' in value) {
+        return (value.toDate()).toISOString();
+    }
+    if (typeof value === 'string')
+        return value;
+    return '';
+}
+async function getUserProfile(uid) {
+    const snap = await db.doc(`users/${uid}/profile/main`).get();
+    if (!snap.exists)
+        return {};
+    return snap.data();
+}
+function requireOrganizationId(profile) {
+    const organizationId = String(profile.organizationId || '').trim();
+    if (!organizationId) {
+        throw new https_1.HttpsError('failed-precondition', '組織に参加していません。');
+    }
+    return organizationId;
+}
+async function fetchScopedDocs(collectionName, organizationId, ownerUid) {
+    const [orgSnap, ownerSnap] = await Promise.all([
+        db.collection(collectionName).where('organizationId', '==', organizationId).get(),
+        db.collection(collectionName).where('ownerUid', '==', ownerUid).get(),
+    ]);
+    const merged = new Map();
+    for (const snap of [orgSnap, ownerSnap]) {
+        for (const row of snap.docs) {
+            merged.set(row.id, row.data());
+        }
+    }
+    return Array.from(merged.values());
+}
 async function getSheetRows(spreadsheetId, range) {
     const auth = new googleapis_1.google.auth.GoogleAuth({
         scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
@@ -46,15 +93,18 @@ async function getSheetRows(spreadsheetId, range) {
     });
     return res.data.values ?? [];
 }
-exports.getDashboardData = (0, https_1.onCall)({ region: 'asia-northeast1' }, async () => {
-    const [vehiclesSnap, maintenanceSnap, fuelSnap] = await Promise.all([
-        db.collection('vehicles').get(),
-        db.collection('maintenanceRecords').get(),
-        db.collection('fuelRecords').get(),
+exports.getDashboardData = (0, https_1.onCall)({ region: 'asia-northeast1' }, async (req) => {
+    if (!req.auth?.uid) {
+        throw new https_1.HttpsError('unauthenticated', 'ログインが必要です。');
+    }
+    const ownerUid = req.auth.uid;
+    const profile = await getUserProfile(ownerUid);
+    const organizationId = requireOrganizationId(profile);
+    const [vehicles, maintenance, fuel] = await Promise.all([
+        fetchScopedDocs('vehicles', organizationId, ownerUid),
+        fetchScopedDocs('maintenanceRecords', organizationId, ownerUid),
+        fetchScopedDocs('fuelRecords', organizationId, ownerUid),
     ]);
-    const vehicles = vehiclesSnap.docs.map((d) => d.data());
-    const maintenance = maintenanceSnap.docs.map((d) => d.data());
-    const fuel = fuelSnap.docs.map((d) => d.data());
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const alerts = [];
@@ -91,15 +141,18 @@ exports.getDashboardData = (0, https_1.onCall)({ region: 'asia-northeast1' }, as
         monthlyFuelCost,
     };
 });
-exports.getStatisticsData = (0, https_1.onCall)({ region: 'asia-northeast1' }, async () => {
-    const [maintenanceSnap, fuelSnap, accidentsSnap] = await Promise.all([
-        db.collection('maintenanceRecords').get(),
-        db.collection('fuelRecords').get(),
-        db.collection('accidentRecords').get(),
+exports.getStatisticsData = (0, https_1.onCall)({ region: 'asia-northeast1' }, async (req) => {
+    if (!req.auth?.uid) {
+        throw new https_1.HttpsError('unauthenticated', 'ログインが必要です。');
+    }
+    const ownerUid = req.auth.uid;
+    const profile = await getUserProfile(ownerUid);
+    const organizationId = requireOrganizationId(profile);
+    const [maintenance, fuel, accidents] = await Promise.all([
+        fetchScopedDocs('maintenanceRecords', organizationId, ownerUid),
+        fetchScopedDocs('fuelRecords', organizationId, ownerUid),
+        fetchScopedDocs('accidentRecords', organizationId, ownerUid),
     ]);
-    const maintenance = maintenanceSnap.docs.map((d) => d.data());
-    const fuel = fuelSnap.docs.map((d) => d.data());
-    const accidents = accidentsSnap.docs.map((d) => d.data());
     const monthlyFuel = {};
     const vehicleMaintCost = {};
     const vehicleFuelCost = {};
@@ -125,12 +178,166 @@ exports.getStatisticsData = (0, https_1.onCall)({ region: 'asia-northeast1' }, a
         totalAccidentCost: accidents.reduce((sum, x) => sum + toNumber(x['費用(円)']), 0),
     };
 });
+exports.createOrganization = (0, https_1.onCall)({ region: 'asia-northeast1' }, async (req) => {
+    if (!req.auth?.uid) {
+        throw new https_1.HttpsError('unauthenticated', 'ログインが必要です。');
+    }
+    const uid = req.auth.uid;
+    const email = String(req.auth.token.email || '').toLowerCase();
+    const displayName = String(req.auth.token.name || '');
+    const name = String(req.data?.name || '').trim();
+    if (!name) {
+        throw new https_1.HttpsError('invalid-argument', '組織名は必須です。');
+    }
+    const profileRef = db.doc(`users/${uid}/profile/main`);
+    const current = await profileRef.get();
+    const currentOrgId = String(current.data()?.organizationId || '').trim();
+    if (currentOrgId) {
+        throw new https_1.HttpsError('failed-precondition', '既に組織へ参加しています。');
+    }
+    const organizationId = createOrganizationId();
+    const now = new Date().toISOString();
+    const orgRef = db.doc(`organizations/${organizationId}`);
+    const memberRef = db.doc(`organizations/${organizationId}/members/${uid}`);
+    const batch = db.batch();
+    batch.set(orgRef, {
+        organizationId,
+        name,
+        createdByUid: uid,
+        createdAt: now,
+    });
+    batch.set(memberRef, {
+        organizationId,
+        uid,
+        role: 'admin',
+        email,
+        displayName,
+        joinedAt: now,
+    });
+    batch.set(profileRef, {
+        organizationId,
+        role: 'admin',
+        email,
+        displayName,
+        joinedAt: now,
+        updatedAt: now,
+    }, { merge: true });
+    await batch.commit();
+    return { organizationId };
+});
+exports.issueInviteCode = (0, https_1.onCall)({ region: 'asia-northeast1' }, async (req) => {
+    if (!req.auth?.uid) {
+        throw new https_1.HttpsError('unauthenticated', 'ログインが必要です。');
+    }
+    const uid = req.auth.uid;
+    const profile = await getUserProfile(uid);
+    const organizationId = requireOrganizationId(profile);
+    if (profile.role !== 'admin') {
+        throw new https_1.HttpsError('permission-denied', '管理者のみ招待コードを発行できます。');
+    }
+    const expiresInDays = Number(req.data?.expiresInDays ?? 7);
+    const validDays = Number.isFinite(expiresInDays) && expiresInDays > 0 ? Math.floor(expiresInDays) : 7;
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + validDays * 24 * 60 * 60 * 1000);
+    for (let i = 0; i < 10; i += 1) {
+        const code = createInviteCode();
+        const ref = db.collection('inviteCodes').doc(code);
+        const snap = await ref.get();
+        if (snap.exists)
+            continue;
+        await ref.set({
+            code,
+            organizationId,
+            createdByUid: uid,
+            createdAt: now.toISOString(),
+            expiresAt: expiresAt.toISOString(),
+            status: 'active',
+        });
+        return {
+            code,
+            organizationId,
+            expiresAt: expiresAt.toISOString(),
+        };
+    }
+    throw new https_1.HttpsError('resource-exhausted', '招待コードの発行に失敗しました。再試行してください。');
+});
+exports.joinOrganizationByInviteCode = (0, https_1.onCall)({ region: 'asia-northeast1' }, async (req) => {
+    if (!req.auth?.uid) {
+        throw new https_1.HttpsError('unauthenticated', 'ログインが必要です。');
+    }
+    const uid = req.auth.uid;
+    const email = String(req.auth.token.email || '').toLowerCase();
+    const displayName = String(req.auth.token.name || '');
+    const code = String(req.data?.code || '').replace(/\D/g, '').slice(0, 6);
+    if (code.length !== 6) {
+        throw new https_1.HttpsError('invalid-argument', '招待コードは6桁で入力してください。');
+    }
+    const profileRef = db.doc(`users/${uid}/profile/main`);
+    const profile = await getUserProfile(uid);
+    if (String(profile.organizationId || '').trim()) {
+        throw new https_1.HttpsError('failed-precondition', '既に組織へ参加しています。');
+    }
+    const codeRef = db.doc(`inviteCodes/${code}`);
+    const now = new Date();
+    await db.runTransaction(async (tx) => {
+        const inviteSnap = await tx.get(codeRef);
+        if (!inviteSnap.exists) {
+            throw new https_1.HttpsError('not-found', '招待コードが見つかりません。');
+        }
+        const invite = inviteSnap.data();
+        const organizationId = String(invite.organizationId || '').trim();
+        if (!organizationId) {
+            throw new https_1.HttpsError('failed-precondition', '無効な招待コードです。');
+        }
+        if (String(invite.status || '') !== 'active') {
+            throw new https_1.HttpsError('failed-precondition', 'この招待コードは既に使用済みです。');
+        }
+        if (invite.usedAt) {
+            throw new https_1.HttpsError('failed-precondition', 'この招待コードは既に使用済みです。');
+        }
+        const expiresAt = toIso(invite.expiresAt);
+        if (!expiresAt || new Date(expiresAt).getTime() < now.getTime()) {
+            throw new https_1.HttpsError('deadline-exceeded', 'この招待コードは期限切れです。');
+        }
+        const orgRef = db.doc(`organizations/${organizationId}`);
+        const orgSnap = await tx.get(orgRef);
+        if (!orgSnap.exists) {
+            throw new https_1.HttpsError('not-found', '組織が見つかりません。');
+        }
+        const memberRef = db.doc(`organizations/${organizationId}/members/${uid}`);
+        tx.set(memberRef, {
+            organizationId,
+            uid,
+            role: 'member',
+            email,
+            displayName,
+            joinedAt: now.toISOString(),
+        });
+        tx.set(profileRef, {
+            organizationId,
+            role: 'member',
+            email,
+            displayName,
+            joinedAt: now.toISOString(),
+            updatedAt: now.toISOString(),
+        }, { merge: true });
+        tx.set(codeRef, {
+            status: 'used',
+            usedByUid: uid,
+            usedAt: now.toISOString(),
+        }, { merge: true });
+    });
+    const finalProfile = await getUserProfile(uid);
+    return { organizationId: requireOrganizationId(finalProfile) };
+});
 exports.runLegacySpreadsheetRestore = (0, https_1.onCall)({ region: 'asia-northeast1' }, async (req) => {
     if (!req.auth) {
         throw new https_1.HttpsError('unauthenticated', 'ログインが必要です。');
     }
     const callerEmail = String(req.auth.token.email || '').toLowerCase();
     const callerUid = String(req.auth.uid || '');
+    const callerProfile = await getUserProfile(callerUid);
+    const organizationId = requireOrganizationId(callerProfile);
     const spreadsheetId = String(req.data?.spreadsheetId || '').trim();
     const dryRun = Boolean(req.data?.dryRun);
     if (!spreadsheetId) {
@@ -154,6 +361,8 @@ exports.runLegacySpreadsheetRestore = (0, https_1.onCall)({ region: 'asia-northe
                 headers.forEach((header, index) => {
                     record[header] = normalizeCell(row[index]);
                 });
+                record.ownerUid = callerUid;
+                record.organizationId = organizationId;
                 const id = String(record[target.idKey] || '').trim();
                 if (!id)
                     continue;
@@ -187,6 +396,8 @@ exports.runLegacySpreadsheetRestore = (0, https_1.onCall)({ region: 'asia-northe
             });
         }
         await db.collection('restoreRuns').add({
+            ownerUid: callerUid,
+            organizationId,
             uid: callerUid,
             email: callerEmail,
             spreadsheetId,
@@ -206,6 +417,8 @@ exports.runLegacySpreadsheetRestore = (0, https_1.onCall)({ region: 'asia-northe
     }
     catch (error) {
         await db.collection('restoreRuns').add({
+            ownerUid: callerUid,
+            organizationId,
             uid: callerUid,
             email: callerEmail,
             spreadsheetId,

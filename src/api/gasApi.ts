@@ -2,14 +2,15 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
+  type QueryConstraint,
   query,
   setDoc,
   where,
 } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
-import { db, fn } from '../firebase';
-import { getOrganizationId } from '../config';
+import { auth, db, fn } from '../firebase';
 import type {
   AlcoholCheckRecord,
   AccidentRecord,
@@ -29,6 +30,25 @@ function createId(prefix: string): string {
   return `${prefix}${Date.now()}${rand}`;
 }
 
+function requireOwnerUid(): string {
+  const uid = auth.currentUser?.uid;
+  if (!uid) throw new Error('ログインが必要です');
+  return uid;
+}
+
+async function requireScope(): Promise<{ ownerUid: string; organizationId: string }> {
+  const ownerUid = requireOwnerUid();
+  const profileSnap = await getDoc(doc(db, 'users', ownerUid, 'profile', 'main'));
+  const organizationId = String(profileSnap.data()?.organizationId ?? '').trim();
+  if (!organizationId) {
+    throw new Error('組織に参加してから利用してください');
+  }
+  return {
+    ownerUid,
+    organizationId,
+  };
+}
+
 function todayJa(): string {
   return new Date().toLocaleDateString('ja-JP');
 }
@@ -43,14 +63,24 @@ function toIsoIfTimestamp(value: unknown): string {
   return '';
 }
 
-function orgCollection(name: 'attendance' | 'alcoholChecks') {
-  const organizationId = getOrganizationId();
+async function orgCollection(name: 'attendance' | 'alcoholChecks') {
+  const { organizationId } = await requireScope();
   return collection(db, orgCollectionPath(organizationId, name));
 }
-
-async function fetchAll<T>(name: string): Promise<T[]> {
-  const snap = await getDocs(collection(db, name));
-  return snap.docs.map((d) => d.data() as T);
+async function fetchAll<T>(name: string, constraints: QueryConstraint[] = []): Promise<T[]> {
+  const { ownerUid, organizationId } = await requireScope();
+  const ref = collection(db, name);
+  const [orgSnap, ownerSnap] = await Promise.all([
+    getDocs(query(ref, where('organizationId', '==', organizationId), ...constraints)),
+    getDocs(query(ref, where('ownerUid', '==', ownerUid), ...constraints)),
+  ]);
+  const merged = new Map<string, T>();
+  for (const snap of [orgSnap, ownerSnap]) {
+    for (const row of snap.docs) {
+      merged.set(row.id, row.data() as T);
+    }
+  }
+  return Array.from(merged.values());
 }
 
 async function callDashboardFunction(): Promise<DashboardData> {
@@ -205,14 +235,16 @@ export async function apiGetVehicles(): Promise<Vehicle[]> {
 }
 
 export async function apiAddVehicle(v: Omit<Vehicle, '車両ID' | '登録日'>): Promise<{ success: boolean; id: string }> {
+  const { ownerUid, organizationId } = await requireScope();
   const id = createId('V');
-  const payload: Vehicle = { ...v, '車両ID': id, '登録日': todayJa() };
+  const payload: Vehicle = { ...v, ownerUid, organizationId, '車両ID': id, '登録日': todayJa() };
   await setDoc(doc(db, COLLECTIONS.vehicles, id), payload);
   return { success: true, id };
 }
 
 export async function apiUpdateVehicle(v: Vehicle): Promise<{ success: boolean }> {
-  await setDoc(doc(db, COLLECTIONS.vehicles, v['車両ID']), v);
+  const { ownerUid, organizationId } = await requireScope();
+  await setDoc(doc(db, COLLECTIONS.vehicles, v['車両ID']), { ...v, ownerUid, organizationId });
   return { success: true };
 }
 
@@ -222,15 +254,16 @@ export async function apiDeleteVehicle(id: string): Promise<{ success: boolean }
 }
 
 export async function apiGetMaintenance(vehicleId?: string): Promise<MaintenanceRecord[]> {
-  const base = collection(db, COLLECTIONS.maintenanceRecords);
-  const q = vehicleId ? query(base, where('車両ID', '==', vehicleId)) : query(base);
-  const snap = await getDocs(q);
-  return snap.docs.map((d) => d.data() as MaintenanceRecord);
+  return fetchAll<MaintenanceRecord>(
+    COLLECTIONS.maintenanceRecords,
+    vehicleId ? [where('車両ID', '==', vehicleId)] : [],
+  );
 }
 
 export async function apiAddMaintenance(r: Omit<MaintenanceRecord, '記録ID'>): Promise<{ success: boolean; id: string }> {
+  const { ownerUid, organizationId } = await requireScope();
   const id = createId('M');
-  await setDoc(doc(db, COLLECTIONS.maintenanceRecords, id), { ...r, '記録ID': id });
+  await setDoc(doc(db, COLLECTIONS.maintenanceRecords, id), { ...r, ownerUid, organizationId, '記録ID': id });
   return { success: true, id };
 }
 
@@ -240,15 +273,16 @@ export async function apiDeleteMaintenance(id: string): Promise<{ success: boole
 }
 
 export async function apiGetFuel(vehicleId?: string): Promise<FuelRecord[]> {
-  const base = collection(db, COLLECTIONS.fuelRecords);
-  const q = vehicleId ? query(base, where('車両ID', '==', vehicleId)) : query(base);
-  const snap = await getDocs(q);
-  return snap.docs.map((d) => d.data() as FuelRecord);
+  return fetchAll<FuelRecord>(
+    COLLECTIONS.fuelRecords,
+    vehicleId ? [where('車両ID', '==', vehicleId)] : [],
+  );
 }
 
 export async function apiAddFuel(r: Omit<FuelRecord, '記録ID'>): Promise<{ success: boolean; id: string }> {
+  const { ownerUid, organizationId } = await requireScope();
   const id = createId('F');
-  await setDoc(doc(db, COLLECTIONS.fuelRecords, id), { ...r, '記録ID': id });
+  await setDoc(doc(db, COLLECTIONS.fuelRecords, id), { ...r, ownerUid, organizationId, '記録ID': id });
   return { success: true, id };
 }
 
@@ -258,15 +292,16 @@ export async function apiDeleteFuel(id: string): Promise<{ success: boolean }> {
 }
 
 export async function apiGetAccidents(vehicleId?: string): Promise<AccidentRecord[]> {
-  const base = collection(db, COLLECTIONS.accidentRecords);
-  const q = vehicleId ? query(base, where('車両ID', '==', vehicleId)) : query(base);
-  const snap = await getDocs(q);
-  return snap.docs.map((d) => d.data() as AccidentRecord);
+  return fetchAll<AccidentRecord>(
+    COLLECTIONS.accidentRecords,
+    vehicleId ? [where('車両ID', '==', vehicleId)] : [],
+  );
 }
 
 export async function apiAddAccident(r: Omit<AccidentRecord, '記録ID'>): Promise<{ success: boolean; id: string }> {
+  const { ownerUid, organizationId } = await requireScope();
   const id = createId('A');
-  await setDoc(doc(db, COLLECTIONS.accidentRecords, id), { ...r, '記録ID': id });
+  await setDoc(doc(db, COLLECTIONS.accidentRecords, id), { ...r, ownerUid, organizationId, '記録ID': id });
   return { success: true, id };
 }
 
@@ -293,14 +328,16 @@ export async function apiGetDrivers(): Promise<Driver[]> {
 }
 
 export async function apiAddDriver(d: Omit<Driver, 'ドライバーID' | '登録日'>): Promise<{ success: boolean; id: string }> {
+  const { ownerUid, organizationId } = await requireScope();
   const id = createId('D');
-  const payload: Driver = { ...d, 'ドライバーID': id, '登録日': todayJa() };
+  const payload: Driver = { ...d, ownerUid, organizationId, 'ドライバーID': id, '登録日': todayJa() };
   await setDoc(doc(db, COLLECTIONS.drivers, id), payload);
   return { success: true, id };
 }
 
 export async function apiUpdateDriver(d: Driver): Promise<{ success: boolean }> {
-  await setDoc(doc(db, COLLECTIONS.drivers, d['ドライバーID']), d);
+  const { ownerUid, organizationId } = await requireScope();
+  await setDoc(doc(db, COLLECTIONS.drivers, d['ドライバーID']), { ...d, ownerUid, organizationId });
   return { success: true };
 }
 
@@ -310,33 +347,24 @@ export async function apiDeleteDriver(id: string): Promise<{ success: boolean }>
 }
 
 export async function apiGetOperationRecords(filters?: { vehicleId?: string; driverId?: string }): Promise<OperationRecord[]> {
-  let qRef = query(collection(db, COLLECTIONS.operationRecords));
-  if (filters?.vehicleId) {
-    qRef = query(collection(db, COLLECTIONS.operationRecords), where('車両ID', '==', filters.vehicleId));
-  }
-  if (filters?.driverId) {
-    qRef = query(collection(db, COLLECTIONS.operationRecords), where('ドライバーID', '==', filters.driverId));
-  }
-  if (filters?.vehicleId && filters?.driverId) {
-    qRef = query(
-      collection(db, COLLECTIONS.operationRecords),
-      where('車両ID', '==', filters.vehicleId),
-      where('ドライバーID', '==', filters.driverId),
-    );
-  }
-  const snap = await getDocs(qRef);
-  return snap.docs.map((d) => d.data() as OperationRecord);
+  const constraints: QueryConstraint[] = [];
+  if (filters?.vehicleId) constraints.push(where('車両ID', '==', filters.vehicleId));
+  if (filters?.driverId) constraints.push(where('ドライバーID', '==', filters.driverId));
+  return fetchAll<OperationRecord>(COLLECTIONS.operationRecords, constraints);
 }
 
 export async function apiAddOperationRecord(
   r: Omit<OperationRecord, '記録ID' | '走行距離(km)'>,
 ): Promise<{ success: boolean; id: string }> {
+  const { ownerUid, organizationId } = await requireScope();
   const dep = toNumber(r['出発時走行距離(km)']);
   const ret = toNumber(r['帰着時走行距離(km)']);
   const distance = ret >= dep ? Math.round((ret - dep) * 1000) / 1000 : 0;
   const id = createId('R');
   await setDoc(doc(db, COLLECTIONS.operationRecords, id), {
     ...r,
+    ownerUid,
+    organizationId,
     '記録ID': id,
     '走行距離(km)': distance,
   });
@@ -349,7 +377,8 @@ export async function apiDeleteOperationRecord(id: string): Promise<{ success: b
 }
 
 export async function apiGetAttendance(): Promise<AttendanceRecord[]> {
-  const snap = await getDocs(query(orgCollection(COLLECTIONS.attendance)));
+  const ref = await orgCollection(COLLECTIONS.attendance);
+  const snap = await getDocs(query(ref));
   return snap.docs.map((d) => {
     const data = d.data() as Omit<AttendanceRecord, 'id'>;
     return {
@@ -365,22 +394,25 @@ export async function apiAddAttendance(
   payload: Omit<AttendanceRecord, 'id' | 'createdAt'>,
 ): Promise<{ success: boolean; id: string }> {
   const id = createId('AT');
+  const ref = await orgCollection(COLLECTIONS.attendance);
   const data: AttendanceRecord = {
     ...payload,
     id,
     createdAt: new Date().toISOString(),
   };
-  await setDoc(doc(orgCollection(COLLECTIONS.attendance), id), data);
+  await setDoc(doc(ref, id), data);
   return { success: true, id };
 }
 
 export async function apiDeleteAttendance(id: string): Promise<{ success: boolean }> {
-  await deleteDoc(doc(orgCollection(COLLECTIONS.attendance), id));
+  const ref = await orgCollection(COLLECTIONS.attendance);
+  await deleteDoc(doc(ref, id));
   return { success: true };
 }
 
 export async function apiGetAlcoholChecks(): Promise<AlcoholCheckRecord[]> {
-  const snap = await getDocs(query(orgCollection(COLLECTIONS.alcoholChecks)));
+  const ref = await orgCollection(COLLECTIONS.alcoholChecks);
+  const snap = await getDocs(query(ref));
   return snap.docs.map((d) => {
     const data = d.data() as Omit<AlcoholCheckRecord, 'id'>;
     return {
@@ -396,16 +428,18 @@ export async function apiAddAlcoholCheck(
   payload: Omit<AlcoholCheckRecord, 'id' | 'createdAt'>,
 ): Promise<{ success: boolean; id: string }> {
   const id = createId('AL');
+  const ref = await orgCollection(COLLECTIONS.alcoholChecks);
   const data: AlcoholCheckRecord = {
     ...payload,
     id,
     createdAt: new Date().toISOString(),
   };
-  await setDoc(doc(orgCollection(COLLECTIONS.alcoholChecks), id), data);
+  await setDoc(doc(ref, id), data);
   return { success: true, id };
 }
 
 export async function apiDeleteAlcoholCheck(id: string): Promise<{ success: boolean }> {
-  await deleteDoc(doc(orgCollection(COLLECTIONS.alcoholChecks), id));
+  const ref = await orgCollection(COLLECTIONS.alcoholChecks);
+  await deleteDoc(doc(ref, id));
   return { success: true };
 }

@@ -16,6 +16,10 @@ export function isSkipAuth(): boolean {
   return (env.VITE_SKIP_AUTH as string) === 'true';
 }
 
+export function isDemoEnabled(): boolean {
+  return (env.VITE_ENABLE_DEMO as string) !== 'false';
+}
+
 const DOMAIN_STORAGE_KEY    = 'fleetmetric_allowed_domain';
 const ORGANIZATION_STORAGE_KEY = 'fleetmetric_organization_id';
 
