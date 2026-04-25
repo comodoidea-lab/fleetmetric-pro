@@ -79,6 +79,8 @@ export function Settings() {
     accidents,
     drivers,
     operationRecords,
+    attendanceRecords,
+    alcoholChecks,
   } = useStore();
   const { theme, setTheme } = useTheme();
   const { multiDriverMode, setMultiDriverMode } = useMultiDriverMode();
@@ -241,6 +243,8 @@ export function Settings() {
     setTimeout(() => exportCsv('事故・修理', toCsvRows(accidents), `fleetmetric_accidents_${stamp}.csv`), 240);
     setTimeout(() => exportCsv('ドライバー', toCsvRows(drivers), `fleetmetric_drivers_${stamp}.csv`), 320);
     setTimeout(() => exportCsv('運行記録', toCsvRows(operationRecords), `fleetmetric_operations_${stamp}.csv`), 400);
+    setTimeout(() => exportCsv('出退勤', toCsvRows(attendanceRecords), `fleetmetric_attendance_${stamp}.csv`), 480);
+    setTimeout(() => exportCsv('アルコールチェック', toCsvRows(alcoholChecks), `fleetmetric_alcohol_checks_${stamp}.csv`), 560);
   }
 
   return (
