@@ -63,6 +63,11 @@ function toIsoIfTimestamp(value: unknown): string {
   return '';
 }
 
+function omitUndefined<T extends Record<string, unknown>>(obj: T): T {
+  const entries = Object.entries(obj).filter(([, value]) => value !== undefined);
+  return Object.fromEntries(entries) as T;
+}
+
 async function orgCollection(name: 'attendance' | 'alcoholChecks') {
   const { organizationId } = await requireScope();
   return collection(db, orgCollectionPath(organizationId, name));
@@ -395,11 +400,11 @@ export async function apiAddAttendance(
 ): Promise<{ success: boolean; id: string }> {
   const id = createId('AT');
   const ref = await orgCollection(COLLECTIONS.attendance);
-  const data: AttendanceRecord = {
+  const data = omitUndefined({
     ...payload,
     id,
     createdAt: new Date().toISOString(),
-  };
+  });
   await setDoc(doc(ref, id), data);
   return { success: true, id };
 }
@@ -429,11 +434,11 @@ export async function apiAddAlcoholCheck(
 ): Promise<{ success: boolean; id: string }> {
   const id = createId('AL');
   const ref = await orgCollection(COLLECTIONS.alcoholChecks);
-  const data: AlcoholCheckRecord = {
+  const data = omitUndefined({
     ...payload,
     id,
     createdAt: new Date().toISOString(),
-  };
+  });
   await setDoc(doc(ref, id), data);
   return { success: true, id };
 }
