@@ -5,6 +5,54 @@ import { useMultiDriverMode } from '../hooks/useMultiDriverMode';
 import { AttendanceForm } from '../components/forms/AttendanceForm';
 import { DialogModal } from '../components/DialogModal';
 
+function AttendanceTypeIcon({ type, iconId }: { type: '出勤' | '退勤'; iconId: string }) {
+  const isClockIn = type === '出勤';
+  const clipId = `attendance-clip-${iconId}`;
+
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" className="w-5 h-5">
+      <defs>
+        <clipPath id={clipId}>
+          <rect width="512" height="512" rx="90" ry="90" />
+        </clipPath>
+      </defs>
+      <rect
+        width="512"
+        height="512"
+        rx="90"
+        ry="90"
+        fill={isClockIn ? '#3F7D3D' : '#7D3D54'}
+        clipPath={`url(#${clipId})`}
+      />
+      <g clipPath={`url(#${clipId})`}>
+        <g transform="rotate(0, 256, 256)">
+          <g transform="translate(64 64) scale(16 16) translate(0 0)">
+            {isClockIn ? (
+              <path
+                fill="none"
+                stroke="#F7F7F7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="m10 17l5-5l-5-5m5 5H3m12-9h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"
+              />
+            ) : (
+              <path
+                fill="none"
+                stroke="#F7F7F7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="m16 17l5-5l-5-5m5 5H9m0 9H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
+              />
+            )}
+          </g>
+        </g>
+      </g>
+    </svg>
+  );
+}
+
 export function Attendance() {
   const navigate = useNavigate();
   const { multiDriverMode } = useMultiDriverMode();
@@ -49,12 +97,8 @@ export function Attendance() {
           <div className="divide-y divide-outline-variant/10">
             {sorted.map((r) => (
               <div key={r.id} className="flex items-center gap-4 px-5 py-4 hover:bg-surface-container transition-colors">
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center ${r.type === '出勤' ? 'bg-tertiary-container' : 'bg-secondary-container'}`}>
-                  <img
-                    src={r.type === '出勤' ? '/logoin.svg' : '/logoout.svg'}
-                    alt={r.type === '出勤' ? '出勤' : '退勤'}
-                    className="w-5 h-5"
-                  />
+                <div className="w-9 h-9 rounded-full flex items-center justify-center">
+                  <AttendanceTypeIcon type={r.type} iconId={r.id} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-headline font-bold text-on-surface">{r.driverName}</p>
