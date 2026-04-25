@@ -570,7 +570,14 @@ export const useStore = create<AppState>((set, get) => ({
       }));
       cacheSet('alcoholChecks', get().alcoholChecks);
       get().refreshDashboard().catch(console.error);
-    } catch {
+    } catch (error: unknown) {
+      // Temporary debug: expose original Firebase error details in console.
+      if (typeof error === 'object' && error !== null) {
+        const e = error as { code?: string; message?: string };
+        console.error('addAlcoholCheck failed:', { code: e.code, message: e.message, raw: error });
+      } else {
+        console.error('addAlcoholCheck failed:', error);
+      }
       set(s => ({ alcoholChecks: s.alcoholChecks.filter(x => x.id !== tmpId) }));
       throw new Error('アルコールチェック記録の追加に失敗しました');
     }
