@@ -50,6 +50,20 @@ service cloud.firestore {
       );
     }
 
+    function canDeleteDataDoc() {
+      return (
+        resource.data.organizationId is string
+        && isMemberOf(resource.data.organizationId)
+        && (
+          resource.data.ownerUid == request.auth.uid
+          || isAdminOf(resource.data.organizationId)
+        )
+      ) || (
+        resource.data.ownerUid is string
+        && resource.data.ownerUid == request.auth.uid
+      );
+    }
+
     match /users/{uid}/{document=**} {
       allow read, write: if isSignedIn() && request.auth.uid == uid;
     }
@@ -74,55 +88,64 @@ service cloud.firestore {
     match /vehicles/{docId} {
       allow create: if canCreateDataDoc();
       allow read: if canReadDataDoc();
-      allow update, delete: if canUpdateDataDoc();
+      allow update: if canUpdateDataDoc();
+      allow delete: if canDeleteDataDoc();
     }
 
     match /maintenanceRecords/{docId} {
       allow create: if canCreateDataDoc();
       allow read: if canReadDataDoc();
-      allow update, delete: if canUpdateDataDoc();
+      allow update: if canUpdateDataDoc();
+      allow delete: if canDeleteDataDoc();
     }
 
     match /fuelRecords/{docId} {
       allow create: if canCreateDataDoc();
       allow read: if canReadDataDoc();
-      allow update, delete: if canUpdateDataDoc();
+      allow update: if canUpdateDataDoc();
+      allow delete: if canDeleteDataDoc();
     }
 
     match /salesRecords/{docId} {
       allow create: if canCreateDataDoc();
       allow read: if canReadDataDoc();
-      allow update, delete: if canUpdateDataDoc();
+      allow update: if canUpdateDataDoc();
+      allow delete: if canDeleteDataDoc();
     }
 
     match /salesCategories/{docId} {
       allow create: if canCreateDataDoc();
       allow read: if canReadDataDoc();
-      allow update, delete: if canUpdateDataDoc();
+      allow update: if canUpdateDataDoc();
+      allow delete: if canDeleteDataDoc();
     }
 
     match /accidentRecords/{docId} {
       allow create: if canCreateDataDoc();
       allow read: if canReadDataDoc();
-      allow update, delete: if canUpdateDataDoc();
+      allow update: if canUpdateDataDoc();
+      allow delete: if canDeleteDataDoc();
     }
 
     match /drivers/{docId} {
       allow create: if canCreateDataDoc();
       allow read: if canReadDataDoc();
-      allow update, delete: if canUpdateDataDoc();
+      allow update: if canUpdateDataDoc();
+      allow delete: if canDeleteDataDoc();
     }
 
     match /operationRecords/{docId} {
       allow create: if canCreateDataDoc();
       allow read: if canReadDataDoc();
-      allow update, delete: if canUpdateDataDoc();
+      allow update: if canUpdateDataDoc();
+      allow delete: if canDeleteDataDoc();
     }
 
     match /restoreRuns/{docId} {
       allow create: if canCreateDataDoc();
       allow read: if canReadDataDoc();
-      allow update, delete: if canUpdateDataDoc();
+      allow update: if canUpdateDataDoc();
+      allow delete: if canDeleteDataDoc();
     }
 
     match /organizations/{organizationId}/attendance/{docId} {
