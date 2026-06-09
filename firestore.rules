@@ -89,6 +89,18 @@ service cloud.firestore {
       allow update, delete: if canUpdateDataDoc();
     }
 
+    match /salesRecords/{docId} {
+      allow create: if canCreateDataDoc();
+      allow read: if canReadDataDoc();
+      allow update, delete: if canUpdateDataDoc();
+    }
+
+    match /salesCategories/{docId} {
+      allow create: if canCreateDataDoc();
+      allow read: if canReadDataDoc();
+      allow update, delete: if canUpdateDataDoc();
+    }
+
     match /accidentRecords/{docId} {
       allow create: if canCreateDataDoc();
       allow read: if canReadDataDoc();

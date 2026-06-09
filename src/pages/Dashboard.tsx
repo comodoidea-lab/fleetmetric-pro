@@ -4,6 +4,7 @@ import { AlertBadge, StatusBadge } from '../components/StatusBadge';
 import { MaintenanceForm } from '../components/forms/MaintenanceForm';
 import { FuelForm } from '../components/forms/FuelForm';
 import { AccidentForm } from '../components/forms/AccidentForm';
+import { SalesForm } from '../components/forms/SalesForm';
 
 function MetricCard({ label, value, icon, accent }: { label: string; value: string | number; icon: string; accent?: string }) {
   return (
@@ -22,13 +23,32 @@ function SkeletonCard() {
 }
 
 export function Dashboard() {
-  const { dashboard, vehicles, maintenance } = useStore();
+  const { dashboard, vehicles, maintenance, fuel, accidents, salesRecords, salesCategories } = useStore();
   const [showMaintForm, setShowMaintForm] = useState(false);
   const [showFuelForm, setShowFuelForm] = useState(false);
   const [showAccidentForm, setShowAccidentForm] = useState(false);
+  const [showSalesForm, setShowSalesForm] = useState(false);
 
   const activeCount = vehicles.filter(v => v['ステータス'] === '稼働中').length;
-  const maintCount = vehicles.filter(v => v['ステータス'] === '整備中').length;
+  const monthPrefix = new Date().toISOString().slice(0, 7);
+  const monthlySales = salesRecords
+    .filter(record => record.date.startsWith(monthPrefix))
+    .reduce((sum, record) => sum + record.amount, 0);
+  const totalOperatingCost = [
+    ...fuel.map(record => ({ date: String(record['日付']), amount: Number(record['費用(円)']) || 0 })),
+    ...maintenance.map(record => ({ date: String(record['日付']), amount: Number(record['費用(円)']) || 0 })),
+    ...accidents.map(record => ({ date: String(record['日付']), amount: Number(record['費用(円)']) || 0 })),
+  ]
+    .reduce((sum, record) => sum + record.amount, 0);
+  const salesBreakdown = salesCategories
+    .map(category => ({
+      ...category,
+      amount: salesRecords
+        .filter(record => record.date.startsWith(monthPrefix) && record.categoryId === category.id)
+        .reduce((sum, record) => sum + record.amount, 0),
+    }))
+    .filter(category => category.amount > 0)
+    .sort((a, b) => b.amount - a.amount);
 
   return (
     <div className="space-y-8">
@@ -46,11 +66,11 @@ export function Dashboard() {
           <>
             <MetricCard label="総車両数" value={dashboard.vehicleCount} icon="directions_car" />
             <MetricCard label="稼働中" value={activeCount || dashboard.activeCount} icon="check_circle" accent="border-l-tertiary-fixed" />
-            <MetricCard label="整備中" value={maintCount} icon="build" accent="border-l-secondary-container" />
+            <MetricCard label="総運用コスト" value={`¥${totalOperatingCost.toLocaleString()}`} icon="account_balance_wallet" accent="border-l-secondary-container" />
             <MetricCard
-              label="今月給油費"
-              value={`¥${(dashboard.monthlyFuelCost).toLocaleString()}`}
-              icon="local_gas_station"
+              label="今月の売上"
+              value={`¥${monthlySales.toLocaleString()}`}
+              icon="payments"
               accent="border-l-primary-fixed-dim"
             />
           </>
@@ -102,7 +122,7 @@ export function Dashboard() {
         </div>
 
         {/* Recent Maintenance */}
-        <div className="lg:col-span-2 bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+        <div className="lg:col-span-1 bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-outline-variant/20">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-primary-fixed-dim" style={{ fontSize: 18 }}>history</span>
@@ -140,6 +160,43 @@ export function Dashboard() {
             ))}
           </div>
         </div>
+
+        <div className="lg:col-span-1 overflow-hidden rounded-xl bg-gradient-to-br from-primary to-primary-container text-white shadow-sm">
+          <div className="border-b border-white/10 px-5 py-4">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-tertiary-fixed" style={{ fontSize: 18 }}>donut_large</span>
+              <h2 className="font-headline text-sm font-bold">売上ブレイクダウン</h2>
+            </div>
+          </div>
+          <div className="p-5">
+            {salesBreakdown.length === 0 ? (
+              <div className="py-6 text-center">
+                <span className="material-symbols-outlined text-3xl opacity-60">payments</span>
+                <p className="mt-2 text-sm opacity-70">今月の売上記録がありません</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {salesBreakdown.slice(0, 4).map(category => {
+                  const rate = monthlySales ? Math.round((category.amount / monthlySales) * 100) : 0;
+                  return (
+                    <div key={category.id}>
+                      <div className="mb-1.5 flex items-center justify-between gap-3 text-xs">
+                        <span className="flex min-w-0 items-center gap-2">
+                          <span className="h-2.5 w-2.5 flex-shrink-0 rounded-full" style={{ backgroundColor: category.color }} />
+                          <span className="truncate font-semibold">{category.name}</span>
+                        </span>
+                        <span className="flex-shrink-0 font-bold">¥{category.amount.toLocaleString()}</span>
+                      </div>
+                      <div className="h-1.5 overflow-hidden rounded-full bg-white/15">
+                        <div className="h-full rounded-full" style={{ width: `${rate}%`, backgroundColor: category.color }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Fleet Status Overview */}
@@ -173,11 +230,12 @@ export function Dashboard() {
       {/* Quick Access */}
       <div>
         <h2 className="text-sm font-headline font-bold text-on-surface mb-3">クイックアクセス</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
             { label: 'メンテナンス記録を追加', icon: 'build', action: () => setShowMaintForm(true) },
             { label: '給油記録を追加', icon: 'local_gas_station', action: () => setShowFuelForm(true) },
             { label: '事故・修理を記録', icon: 'report_problem', action: () => setShowAccidentForm(true) },
+            { label: '売上を記録', icon: 'payments', action: () => setShowSalesForm(true) },
           ].map(({ label, icon, action }) => (
             <button
               key={label}
@@ -196,6 +254,7 @@ export function Dashboard() {
       {showMaintForm && <MaintenanceForm onClose={() => setShowMaintForm(false)} />}
       {showFuelForm && <FuelForm onClose={() => setShowFuelForm(false)} />}
       {showAccidentForm && <AccidentForm onClose={() => setShowAccidentForm(false)} />}
+      {showSalesForm && <SalesForm onClose={() => setShowSalesForm(false)} />}
     </div>
   );
 }

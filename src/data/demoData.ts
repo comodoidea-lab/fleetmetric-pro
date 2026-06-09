@@ -7,9 +7,11 @@ import type {
   FuelRecord,
   MaintenanceRecord,
   OperationRecord,
+  SalesRecord,
   Statistics,
   Vehicle,
 } from '../types';
+import { DEFAULT_SALES_CATEGORIES } from './salesDefaults';
 
 const DEMO_OWNER_UID = 'demo-user';
 
@@ -222,6 +224,42 @@ const alcoholChecks: AlcoholCheckRecord[] = [
   },
 ];
 
+const salesRecords: SalesRecord[] = [
+  {
+    id: 'S-DEMO-001',
+    ownerUid: DEMO_OWNER_UID,
+    date: '2026-06-02',
+    amount: 24800,
+    categoryId: 'sales-category-uber',
+    categoryName: 'Uber',
+    platform: 'Uber',
+    note: '都内稼働',
+    createdAt: '2026-06-02T12:00:00+09:00',
+  },
+  {
+    id: 'S-DEMO-002',
+    ownerUid: DEMO_OWNER_UID,
+    date: '2026-06-04',
+    amount: 18600,
+    categoryId: 'sales-category-demaekan',
+    categoryName: '出前館',
+    platform: '出前館',
+    note: '',
+    createdAt: '2026-06-04T12:00:00+09:00',
+  },
+  {
+    id: 'S-DEMO-003',
+    ownerUid: DEMO_OWNER_UID,
+    date: '2026-06-08',
+    amount: 31200,
+    categoryId: 'sales-category-direct',
+    categoryName: '自社・直接売上',
+    platform: '貸切配送',
+    note: '',
+    createdAt: '2026-06-08T12:00:00+09:00',
+  },
+];
+
 const dashboard: DashboardData = {
   vehicleCount: vehicles.length,
   activeCount: vehicles.filter((v) => v['ステータス'] === '稼働中').length,
@@ -274,5 +312,7 @@ export function createDemoSnapshot() {
     operationRecords: operationRecords.map((x) => ({ ...x })),
     attendanceRecords: attendanceRecords.map((x) => ({ ...x })),
     alcoholChecks: alcoholChecks.map((x) => ({ ...x })),
+    salesRecords: salesRecords.map((x) => ({ ...x })),
+    salesCategories: DEFAULT_SALES_CATEGORIES.map((x) => ({ ...x })),
   };
 }

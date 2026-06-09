@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useMultiDriverMode } from '../hooks/useMultiDriverMode';
 
-const RECORD_PATH_PREFIXES = ['/maintenance', '/fuel', '/accidents', '/drivers', '/operations', '/attendance', '/alcohol-checks'];
+const RECORD_PATH_PREFIXES = ['/maintenance', '/fuel', '/sales', '/accidents', '/drivers', '/operations', '/attendance', '/alcohol-checks'];
 
 function pathIsUnderRecords(pathname: string): boolean {
   return RECORD_PATH_PREFIXES.some(
@@ -20,6 +20,7 @@ export function BottomNav() {
     const base = [
       { to: '/maintenance', label: '整備記録', icon: 'build' as const },
       { to: '/fuel', label: '給油記録', icon: 'local_gas_station' as const },
+      { to: '/sales', label: '売上記録', icon: 'payments' as const },
       { to: '/accidents', label: '事故・修理', icon: 'report_problem' as const },
     ];
     // localStorage と同一タブ同期後の boolean のみで分岐（falsy ではドライバー系を出さない）

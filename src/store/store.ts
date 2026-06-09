@@ -7,6 +7,7 @@ import { create } from 'zustand';
 import {
   Vehicle, MaintenanceRecord, AccidentRecord, FuelRecord,
   Driver, OperationRecord, AttendanceRecord, AlcoholCheckRecord,
+  SalesCategory, SalesRecord,
   DashboardData, Statistics, SyncStatus,
 } from '../types';
 import {
@@ -20,8 +21,11 @@ import {
   apiGetOperationRecords, apiAddOperationRecord, apiDeleteOperationRecord,
   apiGetAttendance, apiAddAttendance, apiDeleteAttendance,
   apiGetAlcoholChecks, apiAddAlcoholCheck, apiDeleteAlcoholCheck,
+  apiGetSalesRecords, apiAddSalesRecord, apiDeleteSalesRecord,
+  apiGetSalesCategories, apiAddSalesCategory, apiDeleteSalesCategory,
 } from '../api/gasApi';
 import { createDemoSnapshot } from '../data/demoData';
+import { DEFAULT_SALES_CATEGORIES } from '../data/salesDefaults';
 
 // ── localStorage cache helpers ───────────────────────────────
 const CACHE_PREFIX = 'fleetmetric_';
@@ -43,6 +47,12 @@ function cacheGet<T>(key: string): T | null {
   } catch { return null; }
 }
 
+function mergeSalesCategories(categories: SalesCategory[]): SalesCategory[] {
+  const merged = new Map(DEFAULT_SALES_CATEGORIES.map(category => [category.id, category]));
+  categories.forEach(category => merged.set(category.id, category));
+  return Array.from(merged.values());
+}
+
 // ── Store types ──────────────────────────────────────────────
 interface AppState {
   // Data
@@ -56,6 +66,8 @@ interface AppState {
   operationRecords: OperationRecord[];
   attendanceRecords: AttendanceRecord[];
   alcoholChecks: AlcoholCheckRecord[];
+  salesRecords: SalesRecord[];
+  salesCategories: SalesCategory[];
 
   // UI state
   syncStatus: SyncStatus;
@@ -77,6 +89,7 @@ interface AppState {
   refreshOperationRecords: () => Promise<void>;
   refreshAttendanceRecords: () => Promise<void>;
   refreshAlcoholChecks: () => Promise<void>;
+  refreshSales: () => Promise<void>;
 
   addVehicle: (v: Omit<Vehicle, '車両ID' | '登録日'>) => Promise<void>;
   updateVehicle: (v: Vehicle) => Promise<void>;
@@ -101,6 +114,10 @@ interface AppState {
   deleteAttendanceRecord: (id: string) => Promise<void>;
   addAlcoholCheck: (r: Omit<AlcoholCheckRecord, 'id' | 'createdAt'>) => Promise<void>;
   deleteAlcoholCheck: (id: string) => Promise<void>;
+  addSalesRecord: (r: Omit<SalesRecord, 'id' | 'createdAt'>) => Promise<void>;
+  deleteSalesRecord: (id: string) => Promise<void>;
+  addSalesCategory: (r: Omit<SalesCategory, 'id'>) => Promise<void>;
+  deleteSalesCategory: (id: string) => Promise<void>;
 }
 
 // ── Store ────────────────────────────────────────────────────
@@ -115,6 +132,8 @@ export const useStore = create<AppState>((set, get) => ({
   operationRecords: cacheGet<OperationRecord[]>('operationRecords') ?? [],
   attendanceRecords: cacheGet<AttendanceRecord[]>('attendanceRecords') ?? [],
   alcoholChecks: cacheGet<AlcoholCheckRecord[]>('alcoholChecks') ?? [],
+  salesRecords: cacheGet<SalesRecord[]>('salesRecords') ?? [],
+  salesCategories: mergeSalesCategories(cacheGet<SalesCategory[]>('salesCategories') ?? []),
   syncStatus: 'idle',
   lastSynced: null,
   initialized: false,
@@ -149,7 +168,7 @@ export const useStore = create<AppState>((set, get) => ({
     }
     set({ syncStatus: 'syncing' });
     try {
-      const [dashboard, vehicles, maintenance, fuel, accidents, statistics, drivers, operationRecords, attendanceRecords, alcoholChecks] = await Promise.all([
+      const [dashboard, vehicles, maintenance, fuel, accidents, statistics, drivers, operationRecords, attendanceRecords, alcoholChecks, salesRecords, salesCategories] = await Promise.all([
         apiGetDashboard(),
         apiGetVehicles(),
         apiGetMaintenance(),
@@ -160,6 +179,8 @@ export const useStore = create<AppState>((set, get) => ({
         apiGetOperationRecords(),
         apiGetAttendance(),
         apiGetAlcoholChecks(),
+        apiGetSalesRecords(),
+        apiGetSalesCategories(),
       ]);
       cacheSet('dashboard', dashboard);
       cacheSet('vehicles', vehicles);
@@ -171,6 +192,9 @@ export const useStore = create<AppState>((set, get) => ({
       cacheSet('operationRecords', operationRecords);
       cacheSet('attendanceRecords', attendanceRecords);
       cacheSet('alcoholChecks', alcoholChecks);
+      cacheSet('salesRecords', salesRecords);
+      const resolvedSalesCategories = mergeSalesCategories(salesCategories);
+      cacheSet('salesCategories', resolvedSalesCategories);
       set({
         dashboard,
         vehicles,
@@ -182,6 +206,8 @@ export const useStore = create<AppState>((set, get) => ({
         operationRecords,
         attendanceRecords,
         alcoholChecks,
+        salesRecords,
+        salesCategories: resolvedSalesCategories,
         syncStatus: 'success',
         lastSynced: new Date(),
         initialized: true,
@@ -250,6 +276,17 @@ export const useStore = create<AppState>((set, get) => ({
     const data = await apiGetAlcoholChecks();
     cacheSet('alcoholChecks', data);
     set({ alcoholChecks: data });
+  },
+  refreshSales: async () => {
+    if (get().demoMode) return;
+    const [salesRecords, salesCategories] = await Promise.all([
+      apiGetSalesRecords(),
+      apiGetSalesCategories(),
+    ]);
+    cacheSet('salesRecords', salesRecords);
+    const resolvedSalesCategories = mergeSalesCategories(salesCategories);
+    cacheSet('salesCategories', resolvedSalesCategories);
+    set({ salesRecords, salesCategories: resolvedSalesCategories });
   },
 
   // ── Vehicles CRUD ────────────────────────────────────────
@@ -592,6 +629,66 @@ export const useStore = create<AppState>((set, get) => ({
     } catch {
       set({ alcoholChecks: prev });
       throw new Error('アルコールチェック記録の削除に失敗しました');
+    }
+  },
+
+  addSalesRecord: async (r) => {
+    const tmpId = 'S_tmp_' + Date.now();
+    const optimistic = { ...r, id: tmpId, createdAt: new Date().toISOString() } as SalesRecord;
+    set(s => ({ salesRecords: [optimistic, ...s.salesRecords] }));
+    if (get().demoMode) return;
+    try {
+      const { id } = await apiAddSalesRecord(r);
+      set(s => ({
+        salesRecords: s.salesRecords.map(x => x.id === tmpId ? { ...optimistic, id } : x),
+      }));
+      cacheSet('salesRecords', get().salesRecords);
+    } catch {
+      set(s => ({ salesRecords: s.salesRecords.filter(x => x.id !== tmpId) }));
+      throw new Error('売上記録の追加に失敗しました');
+    }
+  },
+
+  deleteSalesRecord: async (id) => {
+    const prev = get().salesRecords;
+    set(s => ({ salesRecords: s.salesRecords.filter(x => x.id !== id) }));
+    if (get().demoMode) return;
+    try {
+      await apiDeleteSalesRecord(id);
+      cacheSet('salesRecords', get().salesRecords);
+    } catch {
+      set({ salesRecords: prev });
+      throw new Error('売上記録の削除に失敗しました');
+    }
+  },
+
+  addSalesCategory: async (r) => {
+    const tmpId = 'SC_tmp_' + Date.now();
+    const optimistic = { ...r, id: tmpId } as SalesCategory;
+    set(s => ({ salesCategories: [...s.salesCategories, optimistic] }));
+    if (get().demoMode) return;
+    try {
+      const { id } = await apiAddSalesCategory(r);
+      set(s => ({
+        salesCategories: s.salesCategories.map(x => x.id === tmpId ? { ...optimistic, id } : x),
+      }));
+      cacheSet('salesCategories', get().salesCategories);
+    } catch {
+      set(s => ({ salesCategories: s.salesCategories.filter(x => x.id !== tmpId) }));
+      throw new Error('売上の種類を追加できませんでした');
+    }
+  },
+
+  deleteSalesCategory: async (id) => {
+    const prev = get().salesCategories;
+    set(s => ({ salesCategories: s.salesCategories.filter(x => x.id !== id) }));
+    if (get().demoMode) return;
+    try {
+      await apiDeleteSalesCategory(id);
+      cacheSet('salesCategories', get().salesCategories);
+    } catch {
+      set({ salesCategories: prev });
+      throw new Error('売上の種類を削除できませんでした');
     }
   },
 }));
