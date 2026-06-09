@@ -31,9 +31,10 @@ function AppRoutes() {
 
   useEffect(() => {
     // 開発バイパスモード（VITE_SKIP_AUTH=true）
-    // 認証を省略してアプリ画面を直接表示
+    // Firebase Auth がないため、ローカル保存可能なデモモードで表示
     if (isSkipAuth()) {
-      setAppState('app');
+      enableDemoMode();
+      setAppState('demo');
       return;
     }
 
@@ -61,7 +62,7 @@ function AppRoutes() {
       unsubscribe();
       clearTimeout(authTimeout);
     };
-  }, []);
+  }, [enableDemoMode]);
 
   // データ自動同期（appになったタイミングで起動）
   useEffect(() => {
