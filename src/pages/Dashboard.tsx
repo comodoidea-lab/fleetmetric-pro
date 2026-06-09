@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/store';
 import { AlertBadge, StatusBadge } from '../components/StatusBadge';
 import { MaintenanceForm } from '../components/forms/MaintenanceForm';
@@ -6,16 +7,28 @@ import { FuelForm } from '../components/forms/FuelForm';
 import { AccidentForm } from '../components/forms/AccidentForm';
 import { SalesForm } from '../components/forms/SalesForm';
 
-function MetricCard({ label, value, icon, accent }: { label: string; value: string | number; icon: string; accent?: string }) {
-  return (
-    <div className={`bg-surface-container-lowest rounded-xl p-5 shadow-sm ${accent ? `border-l-4 ${accent}` : ''}`}>
+function MetricCard({ label, value, icon, accent, onClick }: { label: string; value: string | number; icon: string; accent?: string; onClick?: () => void }) {
+  const className = `bg-surface-container-lowest rounded-xl p-5 shadow-sm text-left w-full ${accent ? `border-l-4 ${accent}` : ''} ${onClick ? 'cursor-pointer hover:bg-surface-container-high transition-colors active:scale-[0.98]' : ''}`;
+
+  const content = (
+    <>
       <div className="flex items-center justify-between mb-3">
         <span className="text-xs font-label uppercase tracking-wider text-on-surface-variant">{label}</span>
         <span className="material-symbols-outlined text-primary-fixed-dim" style={{ fontSize: 18 }}>{icon}</span>
       </div>
       <p className="text-3xl font-headline font-bold text-on-surface">{value}</p>
-    </div>
+    </>
   );
+
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className={className}>
+        {content}
+      </button>
+    );
+  }
+
+  return <div className={className}>{content}</div>;
 }
 
 function SkeletonCard() {
@@ -23,6 +36,7 @@ function SkeletonCard() {
 }
 
 export function Dashboard() {
+  const navigate = useNavigate();
   const { dashboard, vehicles, maintenance, fuel, accidents, salesRecords, salesCategories } = useStore();
   const [showMaintForm, setShowMaintForm] = useState(false);
   const [showFuelForm, setShowFuelForm] = useState(false);
@@ -34,11 +48,12 @@ export function Dashboard() {
   const monthlySales = salesRecords
     .filter(record => record.date.startsWith(monthPrefix))
     .reduce((sum, record) => sum + record.amount, 0);
-  const totalOperatingCost = [
+  const monthlyOperatingCost = [
     ...fuel.map(record => ({ date: String(record['日付']), amount: Number(record['費用(円)']) || 0 })),
     ...maintenance.map(record => ({ date: String(record['日付']), amount: Number(record['費用(円)']) || 0 })),
     ...accidents.map(record => ({ date: String(record['日付']), amount: Number(record['費用(円)']) || 0 })),
   ]
+    .filter(record => record.date.startsWith(monthPrefix))
     .reduce((sum, record) => sum + record.amount, 0);
   const salesBreakdown = salesCategories
     .map(category => ({
@@ -64,14 +79,15 @@ export function Dashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {dashboard ? (
           <>
-            <MetricCard label="総車両数" value={dashboard.vehicleCount} icon="directions_car" />
-            <MetricCard label="稼働中" value={activeCount || dashboard.activeCount} icon="check_circle" accent="border-l-tertiary-fixed" />
-            <MetricCard label="総運用コスト" value={`¥${totalOperatingCost.toLocaleString()}`} icon="account_balance_wallet" accent="border-l-secondary-container" />
+            <MetricCard label="総車両数" value={dashboard.vehicleCount} icon="directions_car" onClick={() => navigate('/vehicles')} />
+            <MetricCard label="稼働中" value={activeCount || dashboard.activeCount} icon="check_circle" accent="border-l-tertiary-fixed" onClick={() => navigate('/operations')} />
+            <MetricCard label="月間運用コスト" value={`¥${monthlyOperatingCost.toLocaleString()}`} icon="account_balance_wallet" accent="border-l-secondary-container" onClick={() => navigate('/reports')} />
             <MetricCard
               label="今月の売上"
               value={`¥${monthlySales.toLocaleString()}`}
               icon="payments"
               accent="border-l-primary-fixed-dim"
+              onClick={() => navigate('/sales')}
             />
           </>
         ) : (
