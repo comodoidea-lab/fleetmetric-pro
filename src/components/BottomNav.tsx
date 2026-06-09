@@ -45,8 +45,13 @@ export function BottomNav() {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setModalOpen(false);
     };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handler);
+    };
   }, [modalOpen]);
 
   const leftTabs = [
@@ -147,7 +152,7 @@ export function BottomNav() {
 
       {modalOpen && (
         <div
-          className="lg:hidden fixed inset-0 z-[60] flex items-center justify-center p-4"
+          className="lg:hidden fixed inset-0 z-[60] flex items-end justify-center px-3 pb-[calc(5rem+env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]"
           role="dialog"
           aria-modal="true"
           aria-labelledby="bottom-nav-records-title"
@@ -158,7 +163,7 @@ export function BottomNav() {
             aria-label="閉じる"
             onClick={() => setModalOpen(false)}
           />
-          <div className="relative flex max-h-[min(70vh,480px)] w-full max-w-sm flex-col overflow-hidden rounded-2xl border border-outline-variant/20 bg-surface-container-lowest shadow-xl">
+          <div className="relative flex max-h-[calc(100dvh-6rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] w-full max-w-sm flex-col overflow-hidden rounded-2xl border border-outline-variant/20 bg-surface-container-lowest shadow-xl">
             <div className="flex shrink-0 items-center justify-between border-b border-outline-variant/20 px-5 py-4">
               <h2 id="bottom-nav-records-title" className="text-base font-headline font-bold text-on-surface">
                 記録
@@ -174,7 +179,10 @@ export function BottomNav() {
                 </span>
               </button>
             </div>
-            <div className="min-h-0 overflow-y-auto px-3 py-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
+            <div
+              className="min-h-0 flex-1 overscroll-contain overflow-y-auto px-3 py-2 pb-4"
+              style={{ WebkitOverflowScrolling: 'touch' }}
+            >
               <ul className="space-y-1">
                 {recordLinks.map(item => {
                   const rowActive =
