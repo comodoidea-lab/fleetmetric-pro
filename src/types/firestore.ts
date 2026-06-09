@@ -6,6 +6,8 @@ import type {
   FuelRecord,
   MaintenanceRecord,
   OperationRecord,
+  SalesCategory,
+  SalesRecord,
   Vehicle,
 } from './index';
 
@@ -19,6 +21,8 @@ export const COLLECTIONS = {
   organizations: 'organizations',
   attendance: 'attendance',
   alcoholChecks: 'alcoholChecks',
+  salesRecords: 'salesRecords',
+  salesCategories: 'salesCategories',
 } as const;
 
 export type CollectionName = (typeof COLLECTIONS)[keyof typeof COLLECTIONS];
@@ -38,7 +42,9 @@ export type FirestoreEntity =
   | Driver
   | OperationRecord
   | AttendanceRecord
-  | AlcoholCheckRecord;
+  | AlcoholCheckRecord
+  | SalesRecord
+  | SalesCategory;
 
 export function orgCollectionPath(organizationId: string, collectionName: 'attendance' | 'alcoholChecks'): string {
   return `${COLLECTIONS.organizations}/${organizationId}/${collectionName}`;

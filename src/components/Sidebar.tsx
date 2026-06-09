@@ -8,6 +8,7 @@ const NAV_BASE: NavItem[] = [
   { to: '/vehicles', icon: 'directions_car', label: '車両一覧' },
   { to: '/maintenance', icon: 'build', label: 'メンテナンス' },
   { to: '/fuel', icon: 'local_gas_station', label: '給油記録' },
+  { to: '/sales', icon: 'payments', label: '売上記録' },
   { to: '/accidents', icon: 'report_problem', label: '事故・修理' },
   { to: '/reports', icon: 'bar_chart', label: 'レポート' },
 ];

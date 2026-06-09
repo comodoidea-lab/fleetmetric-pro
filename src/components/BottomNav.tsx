@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useMultiDriverMode } from '../hooks/useMultiDriverMode';
 
-const RECORD_PATH_PREFIXES = ['/maintenance', '/fuel', '/accidents', '/drivers', '/operations', '/attendance', '/alcohol-checks'];
+const RECORD_PATH_PREFIXES = ['/maintenance', '/fuel', '/sales', '/accidents', '/drivers', '/operations', '/attendance', '/alcohol-checks'];
 
 function pathIsUnderRecords(pathname: string): boolean {
   return RECORD_PATH_PREFIXES.some(
@@ -20,6 +20,7 @@ export function BottomNav() {
     const base = [
       { to: '/maintenance', label: '整備記録', icon: 'build' as const },
       { to: '/fuel', label: '給油記録', icon: 'local_gas_station' as const },
+      { to: '/sales', label: '売上記録', icon: 'payments' as const },
       { to: '/accidents', label: '事故・修理', icon: 'report_problem' as const },
     ];
     // localStorage と同一タブ同期後の boolean のみで分岐（falsy ではドライバー系を出さない）
@@ -44,8 +45,13 @@ export function BottomNav() {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setModalOpen(false);
     };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handler);
+    };
   }, [modalOpen]);
 
   const leftTabs = [
@@ -146,7 +152,7 @@ export function BottomNav() {
 
       {modalOpen && (
         <div
-          className="lg:hidden fixed inset-0 z-[60] flex items-center justify-center p-4"
+          className="lg:hidden fixed inset-0 z-[60] flex items-end justify-center px-3 pb-[calc(5rem+env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]"
           role="dialog"
           aria-modal="true"
           aria-labelledby="bottom-nav-records-title"
@@ -157,7 +163,7 @@ export function BottomNav() {
             aria-label="閉じる"
             onClick={() => setModalOpen(false)}
           />
-          <div className="relative flex max-h-[min(70vh,480px)] w-full max-w-sm flex-col overflow-hidden rounded-2xl border border-outline-variant/20 bg-surface-container-lowest shadow-xl">
+          <div className="relative flex max-h-[calc(100dvh-6rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] w-full max-w-sm flex-col overflow-hidden rounded-2xl border border-outline-variant/20 bg-surface-container-lowest shadow-xl">
             <div className="flex shrink-0 items-center justify-between border-b border-outline-variant/20 px-5 py-4">
               <h2 id="bottom-nav-records-title" className="text-base font-headline font-bold text-on-surface">
                 記録
@@ -173,7 +179,10 @@ export function BottomNav() {
                 </span>
               </button>
             </div>
-            <div className="min-h-0 overflow-y-auto px-3 py-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
+            <div
+              className="min-h-0 flex-1 overscroll-contain overflow-y-auto px-3 py-2 pb-4"
+              style={{ WebkitOverflowScrolling: 'touch' }}
+            >
               <ul className="space-y-1">
                 {recordLinks.map(item => {
                   const rowActive =

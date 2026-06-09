@@ -17,6 +17,7 @@ import { AlcoholChecks } from './pages/AlcoholChecks';
 import { Settings } from './pages/Settings';
 import { Login } from './pages/Login';
 import { OrganizationOnboarding } from './pages/OrganizationOnboarding';
+import { SalesRecords } from './pages/SalesRecords';
 import { useStore } from './store/store';
 import { isDemoEnabled, isSkipAuth } from './config';
 import { getMyOrganizationProfile } from './api/organizationApi';
@@ -132,6 +133,7 @@ function AppRoutes() {
         <Route path="/vehicles/:id" element={<VehicleDetail />} />
         <Route path="/maintenance" element={<Maintenance />} />
         <Route path="/fuel" element={<FuelRecords />} />
+        <Route path="/sales" element={<SalesRecords />} />
         <Route path="/accidents" element={<Accidents />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="/drivers" element={<Drivers />} />

@@ -66,6 +66,28 @@ export interface FuelRecord {
   '備考': string;
 }
 
+export interface SalesCategory {
+  ownerUid?: string;
+  organizationId?: string;
+  id: string;
+  name: string;
+  color: string;
+  icon: string;
+}
+
+export interface SalesRecord {
+  ownerUid?: string;
+  organizationId?: string;
+  id: string;
+  date: string;
+  amount: number;
+  categoryId: string;
+  categoryName: string;
+  platform: string;
+  note: string;
+  createdAt: string;
+}
+
 /** ドライバーマスタ */
 export interface Driver {
   ownerUid?: string;

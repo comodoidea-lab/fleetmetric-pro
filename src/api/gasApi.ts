@@ -20,6 +20,8 @@ import type {
   FuelRecord,
   MaintenanceRecord,
   OperationRecord,
+  SalesCategory,
+  SalesRecord,
   Statistics,
   Vehicle,
 } from '../types';
@@ -293,6 +295,45 @@ export async function apiAddFuel(r: Omit<FuelRecord, '記録ID'>): Promise<{ suc
 
 export async function apiDeleteFuel(id: string): Promise<{ success: boolean }> {
   await deleteDoc(doc(db, COLLECTIONS.fuelRecords, id));
+  return { success: true };
+}
+
+export async function apiGetSalesRecords(): Promise<SalesRecord[]> {
+  return fetchAll<SalesRecord>(COLLECTIONS.salesRecords);
+}
+
+export async function apiAddSalesRecord(r: Omit<SalesRecord, 'id' | 'createdAt'>): Promise<{ success: boolean; id: string }> {
+  const { ownerUid, organizationId } = await requireScope();
+  const id = createId('S');
+  const payload: SalesRecord = {
+    ...r,
+    ownerUid,
+    organizationId,
+    id,
+    createdAt: new Date().toISOString(),
+  };
+  await setDoc(doc(db, COLLECTIONS.salesRecords, id), payload);
+  return { success: true, id };
+}
+
+export async function apiDeleteSalesRecord(id: string): Promise<{ success: boolean }> {
+  await deleteDoc(doc(db, COLLECTIONS.salesRecords, id));
+  return { success: true };
+}
+
+export async function apiGetSalesCategories(): Promise<SalesCategory[]> {
+  return fetchAll<SalesCategory>(COLLECTIONS.salesCategories);
+}
+
+export async function apiAddSalesCategory(r: Omit<SalesCategory, 'id'>): Promise<{ success: boolean; id: string }> {
+  const { ownerUid, organizationId } = await requireScope();
+  const id = createId('SC');
+  await setDoc(doc(db, COLLECTIONS.salesCategories, id), { ...r, ownerUid, organizationId, id });
+  return { success: true, id };
+}
+
+export async function apiDeleteSalesCategory(id: string): Promise<{ success: boolean }> {
+  await deleteDoc(doc(db, COLLECTIONS.salesCategories, id));
   return { success: true };
 }
 
