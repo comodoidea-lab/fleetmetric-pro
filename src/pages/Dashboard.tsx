@@ -6,6 +6,8 @@ import { MaintenanceForm } from '../components/forms/MaintenanceForm';
 import { FuelForm } from '../components/forms/FuelForm';
 import { AccidentForm } from '../components/forms/AccidentForm';
 import { SalesForm } from '../components/forms/SalesForm';
+import { getMonthKey } from '../utils/date';
+import { getMonthlyOperatingCost } from '../utils/costStats';
 
 function MetricCard({ label, value, icon, accent, onClick }: { label: string; value: string | number; icon: string; accent?: string; onClick?: () => void }) {
   const className = `bg-surface-container-lowest rounded-xl p-5 shadow-sm text-left w-full ${accent ? `border-l-4 ${accent}` : ''} ${onClick ? 'cursor-pointer hover:bg-surface-container-high transition-colors active:scale-[0.98]' : ''}`;
@@ -44,22 +46,21 @@ export function Dashboard() {
   const [showSalesForm, setShowSalesForm] = useState(false);
 
   const activeCount = vehicles.filter(v => v['ステータス'] === '稼働中').length;
-  const monthPrefix = new Date().toISOString().slice(0, 7);
+  const currentMonthKey = getMonthKey();
   const monthlySales = salesRecords
-    .filter(record => record.date.startsWith(monthPrefix))
+    .filter(record => record.date.startsWith(currentMonthKey))
     .reduce((sum, record) => sum + record.amount, 0);
-  const monthlyOperatingCost = [
-    ...fuel.map(record => ({ date: String(record['日付']), amount: Number(record['費用(円)']) || 0 })),
-    ...maintenance.map(record => ({ date: String(record['日付']), amount: Number(record['費用(円)']) || 0 })),
-    ...accidents.map(record => ({ date: String(record['日付']), amount: Number(record['費用(円)']) || 0 })),
-  ]
-    .filter(record => record.date.startsWith(monthPrefix))
-    .reduce((sum, record) => sum + record.amount, 0);
+  const monthlyOperatingCost = getMonthlyOperatingCost(
+    fuel,
+    maintenance,
+    accidents,
+    currentMonthKey,
+  );
   const salesBreakdown = salesCategories
     .map(category => ({
       ...category,
       amount: salesRecords
-        .filter(record => record.date.startsWith(monthPrefix) && record.categoryId === category.id)
+        .filter(record => record.date.startsWith(currentMonthKey) && record.categoryId === category.id)
         .reduce((sum, record) => sum + record.amount, 0),
     }))
     .filter(category => category.amount > 0)

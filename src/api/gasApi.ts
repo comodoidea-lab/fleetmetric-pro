@@ -26,6 +26,7 @@ import type {
   Vehicle,
 } from '../types';
 import { COLLECTIONS, orgCollectionPath, toNumber } from '../types/firestore';
+import { buildCostStatistics } from '../utils/costStats';
 
 function createId(prefix: string): string {
   const rand = Math.random().toString(36).slice(2, 8).toUpperCase();
@@ -185,27 +186,7 @@ function deriveStatistics(
   maintenance: MaintenanceRecord[],
   accidents: AccidentRecord[],
 ): Statistics {
-  const monthlyFuel: Record<string, number> = {};
-  const vehicleMaintCost: Record<string, number> = {};
-  const vehicleFuelCost: Record<string, number> = {};
-  for (const f of fuel) {
-    const month = String(f['日付']).replace(/-/g, '/').slice(0, 7);
-    if (month) monthlyFuel[month] = (monthlyFuel[month] || 0) + toNumber(f['費用(円)']);
-    const vName = f['車両名'];
-    if (vName) vehicleFuelCost[vName] = (vehicleFuelCost[vName] || 0) + toNumber(f['費用(円)']);
-  }
-  for (const m of maintenance) {
-    const vName = m['車両名'];
-    if (vName) vehicleMaintCost[vName] = (vehicleMaintCost[vName] || 0) + toNumber(m['費用(円)']);
-  }
-  return {
-    monthlyFuel,
-    vehicleMaintCost,
-    vehicleFuelCost,
-    totalFuelCost: fuel.reduce((sum, x) => sum + toNumber(x['費用(円)']), 0),
-    totalMaintCost: maintenance.reduce((sum, x) => sum + toNumber(x['費用(円)']), 0),
-    totalAccidentCost: accidents.reduce((sum, x) => sum + toNumber(x['費用(円)']), 0),
-  };
+  return buildCostStatistics(fuel, maintenance, accidents);
 }
 
 export async function apiGetDashboard(): Promise<DashboardData> {

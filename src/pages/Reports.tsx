@@ -1,4 +1,6 @@
 import { useStore } from '../store/store';
+import { getMonthKey, formatMonthLabel } from '../utils/date';
+import { buildCostStatistics, getMonthlyOperatingCost } from '../utils/costStats';
 
 function BarChart({ data }: { data: Record<string, number> }) {
   const entries = Object.entries(data).sort(([a], [b]) => a.localeCompare(b)).slice(-6);
@@ -17,7 +19,7 @@ function BarChart({ data }: { data: Record<string, number> }) {
               style={{ height: `${Math.round((value / max) * 100)}%`, marginTop: 'auto' }}
             />
           </div>
-          <span className="text-[10px] font-label text-on-surface-variant">{month.slice(5)}</span>
+          <span className="text-[10px] font-label text-on-surface-variant">{formatMonthLabel(month)}</span>
         </div>
       ))}
     </div>
@@ -31,6 +33,14 @@ export function Reports() {
   const totalMaint = statistics?.totalMaintCost ?? maintenance.reduce((s, r) => s + (Number(r['費用(円)']) || 0), 0);
   const totalAccident = statistics?.totalAccidentCost ?? accidents.reduce((s, r) => s + (Number(r['費用(円)']) || 0), 0);
   const grandTotal = totalFuel + totalMaint + totalAccident;
+  const currentMonthKey = getMonthKey();
+  const liveCostStats = buildCostStatistics(fuel, maintenance, accidents);
+  const currentMonthOperatingCost = getMonthlyOperatingCost(
+    fuel,
+    maintenance,
+    accidents,
+    currentMonthKey,
+  );
 
   const vehicleCostEntries = Object.entries(statistics?.vehicleMaintCost ?? {})
     .sort(([, a], [, b]) => b - a)
@@ -62,6 +72,29 @@ export function Reports() {
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="bg-surface-container-lowest rounded-xl shadow-sm p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <div className="mb-2 flex items-center gap-2">
+              <span className="material-symbols-outlined text-secondary-container" style={{ fontSize: 18 }}>calendar_month</span>
+              <h2 className="text-sm font-headline font-bold text-on-surface">月別運用コスト</h2>
+            </div>
+            <p className="text-xs font-label text-on-surface-variant">
+              給油費・整備費・事故修理費の月次合計（総運用コストとは別集計）
+            </p>
+          </div>
+          <div className="rounded-xl bg-secondary-container px-5 py-4 text-on-secondary-container">
+            <p className="text-xs font-label uppercase tracking-wider opacity-80">今月（{formatMonthLabel(currentMonthKey)}月）</p>
+            <p className="text-3xl font-headline font-bold">¥{currentMonthOperatingCost.toLocaleString()}</p>
+          </div>
+        </div>
+        {Object.keys(liveCostStats.monthlyOperatingCost).length > 0 ? (
+          <BarChart data={liveCostStats.monthlyOperatingCost} />
+        ) : (
+          <div className="mt-4 flex h-32 items-center justify-center text-sm text-on-surface-variant">データなし</div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

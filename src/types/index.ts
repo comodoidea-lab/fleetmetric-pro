@@ -171,6 +171,9 @@ export interface DashboardData {
 
 export interface Statistics {
   monthlyFuel: Record<string, number>;
+  monthlyMaint: Record<string, number>;
+  monthlyAccident: Record<string, number>;
+  monthlyOperatingCost: Record<string, number>;
   vehicleMaintCost: Record<string, number>;
   vehicleFuelCost: Record<string, number>;
   totalFuelCost: number;
