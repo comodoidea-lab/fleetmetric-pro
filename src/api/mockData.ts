@@ -7,6 +7,7 @@ import {
   Driver, OperationRecord,
   DashboardData, Statistics,
 } from '../types';
+import { buildCostStatistics } from '../utils/costStats';
 
 const today = new Date();
 const fmt = (d: Date) => d.toISOString().split('T')[0].replace(/-/g, '/');
@@ -119,30 +120,5 @@ export const MOCK_DATA = {
       .filter(r => String(r['日付']).startsWith(fmt(today).substring(0, 7)))
       .reduce((s, r) => s + Number(r['費用(円)']), 0) || 26979,
   } as DashboardData,
-  statistics: {
-    monthlyFuel: {
-      [fmt(subDays(today, 150)).substring(0, 7)]: 142000,
-      [fmt(subDays(today, 120)).substring(0, 7)]: 138000,
-      [fmt(subDays(today, 90)).substring(0, 7)]: 155000,
-      [fmt(subDays(today, 60)).substring(0, 7)]: 148000,
-      [fmt(subDays(today, 30)).substring(0, 7)]: 162000,
-      [fmt(today).substring(0, 7)]: 26979,
-    },
-    vehicleMaintCost: {
-      'トヨタ プリウス': 8800,
-      'ホンダ フィット': 45000,
-      '日産 ノート': 52000,
-      'スズキ スイフト': 7500,
-      'マツダ デミオ': 120000,
-    },
-    vehicleFuelCost: {
-      'トヨタ プリウス': 9864,
-      'ホンダ フィット': 5950,
-      '日産 ノート': 6840,
-      'スズキ スイフト': 4325,
-    },
-    totalFuelCost: 26979,
-    totalMaintCost: 233300,
-    totalAccidentCost: 85000,
-  } as Statistics,
+  statistics: buildCostStatistics(MOCK_FUEL, MOCK_MAINTENANCE, MOCK_ACCIDENTS),
 };

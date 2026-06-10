@@ -12,6 +12,7 @@ import type {
   Vehicle,
 } from '../types';
 import { DEFAULT_SALES_CATEGORIES } from './salesDefaults';
+import { buildCostStatistics } from '../utils/costStats';
 
 const DEMO_OWNER_UID = 'demo-user';
 
@@ -278,22 +279,7 @@ const dashboard: DashboardData = {
   monthlyFuelCost: fuel.reduce((sum, x) => sum + Number(x['費用(円)'] || 0), 0),
 };
 
-const statistics: Statistics = {
-  monthlyFuel: {
-    '2026-04': 13154,
-  },
-  vehicleMaintCost: {
-    ハイエース: 9800,
-    プロボックス: 42000,
-  },
-  vehicleFuelCost: {
-    ハイエース: 7729,
-    プロボックス: 5425,
-  },
-  totalFuelCost: 13154,
-  totalMaintCost: 51800,
-  totalAccidentCost: 28000,
-};
+const statistics: Statistics = buildCostStatistics(fuel, maintenance, accidents);
 
 export function createDemoSnapshot() {
   return {
